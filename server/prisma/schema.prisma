@@ -1,0 +1,97 @@
+// Identity & access tables from RENTrust_MVP_Backend_Flow_and_ERD.excalidraw.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserType {
+  IND
+  ORG
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum KycStatus {
+  NOT_STARTED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum RoleName {
+  SEEKER
+  LANDLORD
+  AGENT
+  OFFICER
+  ADMIN
+}
+
+enum ConsentKind {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  CHARACTER_REPORT
+  MARKETING
+}
+
+model User {
+  id            String     @id @default(uuid()) @db.Uuid
+  email         String     @unique
+  phone         String     @unique
+  passwordHash  String     @map("password_hash")
+  userType      UserType   @default(IND) @map("user_type")
+  profile       Json       @default("{}")
+  status        UserStatus @default(ACTIVE)
+  kycStatus     KycStatus  @default(NOT_STARTED) @map("kyc_status")
+  emailVerified Boolean    @default(false) @map("email_verified")
+  phoneVerified Boolean    @default(false) @map("phone_verified")
+  mfaEnabled    Boolean    @default(false) @map("mfa_enabled")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  roles    UserRole[]
+  consents Consent[]
+
+  @@map("users")
+}
+
+model Role {
+  id   Int      @id @default(autoincrement())
+  name RoleName @unique
+
+  users UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId Int    @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Consent {
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  kind       ConsentKind
+  docVersion String      @map("doc_version")
+  acceptedAt DateTime    @default(now()) @map("accepted_at")
+  ip         String?     @db.Inet
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("consents")
+}
