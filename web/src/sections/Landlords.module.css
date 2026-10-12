@@ -1,0 +1,29 @@
+.schedule {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-5);
+  margin-bottom: var(--space-4);
+  border-top: var(--pen-heavy) solid var(--navy);
+}
+
+.item {
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.item dt {
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.item dd {
+  max-width: 34rem;
+  margin-top: 0.35rem;
+  color: var(--navy-soft);
+}
+
+@media (max-width: 860px) {
+  .schedule {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

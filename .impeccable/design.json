@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T00:00:00Z",
+  "title": "Design System: RENTrust",
+  "extensions": {
+    "colorMeta": {
+      "navy": { "role": "primary", "displayName": "Survey Navy", "canonical": "oklch(34.4% 0.082 248.6)", "tonalRamp": ["#000b22", "#002547", "#164269", "#36618a", "#5884af", "#7ca9d6", "#a1d0fe", "#e2f0ff"] },
+      "navy-soft": { "role": "neutral", "displayName": "Faded Pen", "canonical": "oklch(45.3% 0.045 245.4)", "tonalRamp": ["#000c1d", "#0f2638", "#2b4256", "#486176", "#6a839a", "#8ea8c0", "#b3cee7", "#e1f1ff"] },
+      "green": { "role": "secondary", "displayName": "Verified Green", "canonical": "oklch(55.2% 0.119 154.0)", "tonalRamp": ["#001103", "#002d13", "#004d27", "#05703d", "#3b955f", "#62ba82", "#89e2a7", "#c5ffd6"] },
+      "green-text": { "role": "secondary", "displayName": "Verified Green, Text", "canonical": "oklch(48.6% 0.103 154.6)", "tonalRamp": ["#001103", "#002d14", "#004e28", "#206e42", "#489264", "#6db887", "#93dfad", "#c5ffd7"] },
+      "green-on-navy": { "role": "secondary", "displayName": "Verified Green on Navy", "canonical": "oklch(80.9% 0.094 154.8)", "tonalRamp": ["#001103", "#002d14", "#004d29", "#296d45", "#4e9167", "#73b68b", "#99ddb0", "#c5ffd7"] },
+      "film": { "role": "neutral", "displayName": "Drafting Film", "canonical": "oklch(96.7% 0.005 165.0)", "tonalRamp": ["#090c0b", "#222523", "#3d413f", "#5b5e5d", "#7e817f", "#a2a6a4", "#c8cbca", "#ecefed"] },
+      "film-deep": { "role": "neutral", "displayName": "Film Deep", "canonical": "oklch(93.4% 0.008 168.7)", "tonalRamp": ["#080c0a", "#202523", "#3c413f", "#595f5d", "#7c827f", "#a0a6a3", "#c5ccc9", "#e9f0ed"] },
+      "on-navy": { "role": "neutral", "displayName": "Film on Navy", "canonical": "oklch(96.7% 0.005 165.0)", "tonalRamp": ["#090c0b", "#222523", "#3d413f", "#5b5e5d", "#7e817f", "#a2a6a4", "#c8cbca", "#ecefed"] },
+      "on-navy-soft": { "role": "neutral", "displayName": "Faded Pen on Navy", "canonical": "oklch(79.6% 0.036 241.6)", "tonalRamp": ["#000d19", "#132634", "#2f4251", "#4c6070", "#6e8394", "#91a8ba", "#b7cee0", "#e0f1ff"] },
+      "error": { "role": "neutral", "displayName": "Error Red", "canonical": "oklch(50.0% 0.182 29.5)", "tonalRamp": ["#220000", "#4d0000", "#7d0000", "#ad1a10", "#d74839", "#ff7361", "#feb5a9", "#fee9e5"] }
+    },
+    "derivedColors": [
+      { "name": "rule", "value": "color-mix(in srgb, #0e3b61 22%, transparent)", "purpose": "Hairline row dividers and the inner sheet frame." },
+      { "name": "grid", "value": "color-mix(in srgb, #0e3b61 7%, transparent)", "purpose": "Faint sheet grid; cell = 12 scale units." },
+      { "name": "hatch", "value": "color-mix(in srgb, #2a8651 26%, transparent)", "purpose": "Verified-area hatching and text selection." }
+    ],
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headline only, lettered inside the parcel." },
+      "headline": { "displayName": "Headline", "purpose": "Sheet titles (h2)." },
+      "title": { "displayName": "Title", "purpose": "Step titles, title-block titles, check notes." },
+      "body": { "displayName": "Body", "purpose": "Prose, max ~34rem, tabular figures." },
+      "lead": { "displayName": "Lead", "purpose": "Sheet intros and hero sub-line in Faded Pen." },
+      "label": { "displayName": "Label", "purpose": "Form labels, nav, step numbers, Unlocks lines, metadata." },
+      "logo": { "displayName": "Wordmark", "purpose": "Montserrat, inside the RENTrust wordmark and tagline only." }
+    },
+    "strokes": [
+      { "name": "rule", "value": "1px", "purpose": "Dividers between rows and inner frame." },
+      { "name": "pen", "value": "1.5px", "purpose": "Drawn objects: parcels, keys, scale marks." },
+      { "name": "pen-heavy", "value": "2px", "purpose": "Sheet frames, buttons, title blocks, schedule lead rules, focus outlines." }
+    ],
+    "sheetScales": [
+      { "scale": "1:200", "unit": "6px", "gridCell": "72px" },
+      { "scale": "1:100", "unit": "8px", "gridCell": "96px" },
+      { "scale": "1:50", "unit": "12px", "gridCell": "144px" },
+      { "scale": "1:20", "unit": "19px", "gridCell": "228px" },
+      { "scale": "1:10", "unit": "27px", "gridCell": "324px" }
+    ],
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "All state transitions and survey animations." },
+      { "name": "state-transition", "value": "0.2s", "purpose": "Button fill and border changes." },
+      { "name": "beacon-verify", "value": "0.4s", "purpose": "Beacon scales to 1.6x then settles green when the traverse reaches it." },
+      { "name": "boundary-close", "value": "0.6s", "purpose": "Traversed navy boundary turns green once closed." },
+      { "name": "plot-settle", "value": "0.8s", "purpose": "Hatch and Verified label fade in after closure." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "560px" },
+      { "name": "md", "value": "860px" },
+      { "name": "lg", "value": "1100px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action, e.g. Join the waitlist. Square, navy, turns verified green on hover.",
+      "html": "<button class=\"ds-btn\">Join the waitlist</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 2.875rem; padding: 0.6rem 1.25rem; border: 2px solid #0e3b61; border-radius: 0; background: #0e3b61; color: #f1f5f3; font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; font-size: 1.0625rem; font-weight: 700; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:hover { background: #227044; border-color: #227044; } .ds-btn:focus-visible { outline: 2px solid #2a8651; outline-offset: 3px; } .ds-btn:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action beside a primary, e.g. Join as a landlord or agent.",
+      "html": "<button class=\"ds-btn-outline\">Join as a landlord or agent</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; min-height: 2.875rem; padding: 0.6rem 1.25rem; border: 2px solid #0e3b61; border-radius: 0; background: transparent; color: #0e3b61; font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; font-size: 1.0625rem; font-weight: 700; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-outline:hover { background: #0e3b61; color: #f1f5f3; } .ds-btn-outline:focus-visible { outline: 2px solid #2a8651; outline-offset: 3px; } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Square white field with navy pen border, green focus, red error.",
+      "html": "<label class=\"ds-field\"><span>Email address</span><input type=\"email\" placeholder=\"you@example.com\"></label>",
+      "css": ".ds-field { display: grid; gap: 0.25rem; font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; color: #0e3b61; } .ds-field span { font-size: 0.875rem; font-weight: 700; } .ds-field input { min-height: 2.75rem; padding: 0.5rem 0.7rem; border: 1px solid #0e3b61; border-radius: 0; background: #fff; color: #0e3b61; font: inherit; font-size: 1.0625rem; } .ds-field input::placeholder { color: #41596e; opacity: 0.8; } .ds-field input:focus-visible { outline: 2px solid #2a8651; outline-offset: 0; } .ds-field input:user-invalid { border-color: #b42318; outline: 1px solid #b42318; }"
+    },
+    {
+      "name": "Header Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Sticky film header: wordmark, Faded Pen links, small primary CTA.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-nav-word\"><b>REN</b><i>Trust</i></span><nav><a href=\"#\">How we check</a><a href=\"#\">How renting works</a><a href=\"#\">For landlords</a></nav><a class=\"ds-nav-cta\" href=\"#\">Join the waitlist</a></header>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 2.5rem; min-height: 4rem; padding: 0 1.5rem; background: #f1f5f3; border-bottom: 1px solid color-mix(in srgb, #0e3b61 22%, transparent); font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; } .ds-nav-word { font-family: 'Montserrat Variable', Montserrat, sans-serif; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; } .ds-nav-word b { color: #0e3b61; font-weight: 700; } .ds-nav-word i { color: #2a8651; font-style: normal; } .ds-nav nav { display: flex; gap: 1.5rem; margin-left: auto; font-size: 0.875rem; font-weight: 600; } .ds-nav nav a { color: #41596e; text-decoration: none; } .ds-nav nav a:hover { color: #0e3b61; text-decoration: underline; } .ds-nav-cta { min-height: 2.5rem; display: inline-flex; align-items: center; padding: 0.4rem 1rem; background: #0e3b61; color: #f1f5f3; border: 2px solid #0e3b61; font-size: 0.875rem; font-weight: 700; text-decoration: none; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-nav-cta:hover { background: #227044; border-color: #227044; } .ds-nav a:focus-visible { outline: 2px solid #2a8651; outline-offset: 3px; }"
+    },
+    {
+      "name": "Sheet",
+      "kind": "card",
+      "refersTo": "sheet-navy",
+      "description": "Page unit: double drawing frame, scale-tied grid, sheet/scale cell bottom-right.",
+      "html": "<section class=\"ds-sheet\"><div class=\"ds-sheet-inner\"><h2>Three separate checks</h2><p>A listing only counts as verified where all three checks overlap.</p><dl class=\"ds-sheet-cell\"><div><dt>Sheet</dt><dd>2 of 5</dd></div><div><dt>Scale</dt><dd>1:100</dd></div></dl></div></section>",
+      "css": ".ds-sheet { padding: 6px; border: 2px solid #0e3b61; background: #f1f5f3; color: #0e3b61; font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-sheet-inner { position: relative; padding: 2.5rem 2.5rem 5rem; border: 1px solid color-mix(in srgb, #0e3b61 22%, transparent); background-image: linear-gradient(color-mix(in srgb, #0e3b61 7%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, #0e3b61 7%, transparent) 1px, transparent 1px); background-size: 96px 96px; } .ds-sheet h2 { margin: 0; font-size: 2.25rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; } .ds-sheet p { margin: 1rem 0 0; font-size: 1.25rem; line-height: 1.5; color: #41596e; } .ds-sheet-cell { position: absolute; right: 0; bottom: 0; display: flex; margin: 0; border-top: 1px solid color-mix(in srgb, #0e3b61 22%, transparent); border-left: 1px solid color-mix(in srgb, #0e3b61 22%, transparent); font-size: 0.75rem; line-height: 1.3; } .ds-sheet-cell div { padding: 0.4rem 0.8rem; } .ds-sheet-cell div + div { border-left: 1px solid color-mix(in srgb, #0e3b61 22%, transparent); } .ds-sheet-cell dt { opacity: 0.7; } .ds-sheet-cell dd { margin: 0; font-weight: 700; }"
+    },
+    {
+      "name": "Title Block",
+      "kind": "custom",
+      "refersTo": "title-block",
+      "description": "Drawing title block that hosts every conversion form.",
+      "html": "<div class=\"ds-tb\"><div class=\"ds-tb-head\"><p class=\"ds-tb-title\">Join the waitlist</p><p class=\"ds-tb-meta\">Opening in Lagos and Abuja</p></div><div class=\"ds-tb-body\"><button class=\"ds-tb-btn\">Join the waitlist</button></div></div>",
+      "css": ".ds-tb { max-width: 24rem; background: #f1f5f3; color: #0e3b61; border: 2px solid #0e3b61; font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; } .ds-tb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.7rem 1rem; border-bottom: 1px solid #0e3b61; } .ds-tb-head p { margin: 0; } .ds-tb-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.015em; } .ds-tb-meta { font-size: 0.875rem; color: #41596e; } .ds-tb-body { padding: 1rem; } .ds-tb-btn { width: 100%; min-height: 2.875rem; border: 2px solid #0e3b61; border-radius: 0; background: #0e3b61; color: #f1f5f3; font: inherit; font-weight: 700; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-tb-btn:hover { background: #227044; border-color: #227044; } .ds-tb-btn:focus-visible { outline: 2px solid #2a8651; outline-offset: 3px; }"
+    },
+    {
+      "name": "Traverse Station",
+      "kind": "custom",
+      "refersTo": "traverse",
+      "description": "Step on a pen line: beacon, number, title, body, green Unlocks line.",
+      "html": "<ol class=\"ds-trav\"><li><span class=\"ds-trav-b\"></span><span class=\"ds-trav-n\">01</span><h3>Find a verified home</h3><p class=\"ds-trav-u\">Unlocks showing interest</p></li><li class=\"ds-trav-last\"><span class=\"ds-trav-b\"></span><span class=\"ds-trav-n\">04</span><h3>Sign and pay</h3><p class=\"ds-trav-u\">Your tenancy begins</p></li></ol>",
+      "css": ".ds-trav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; margin: 0; padding: 0; list-style: none; font-family: 'Overpass Variable', Overpass, system-ui, sans-serif; color: #0e3b61; font-variant-numeric: tabular-nums; } .ds-trav li { position: relative; padding-top: 2.5rem; } .ds-trav li::before { content: ''; position: absolute; top: 7px; left: 0; right: -2.5rem; border-top: 2px solid #0e3b61; } .ds-trav li.ds-trav-last::before { right: 0; border-top-style: dashed; } .ds-trav-b { position: absolute; top: 0; left: 0; width: 16px; height: 16px; border: 2px solid #0e3b61; border-radius: 50%; background: #f1f5f3; } .ds-trav-last .ds-trav-b { background: #2a8651; } .ds-trav-n { font-size: 0.875rem; font-weight: 800; color: #41596e; } .ds-trav h3 { margin: 0.35rem 0 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.015em; } .ds-trav-u { margin: 1rem 0 0; font-size: 0.875rem; font-weight: 700; color: #227044; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Registered Survey Plan",
+    "overview": "RENTrust proves a rental the way a licensed surveyor proves a plot, so every surface is a drawing sheet: cool drafting film, navy technical-pen linework, beacons with IDs, bearings and distances on edges, a framed title block, a north arrow and scale bars. Trust is shown by drawing the mechanism, never by adjectives or imagery. The category default (an apartment photo under a search bar) is rejected outright; there is no photography in this system.\n\nThe page is a set of numbered sheets. Each sheet carries a double drawing border and a sheet/scale cell bottom-right (\"Sheet 2 of 5 · 1:100\"), and the scale rises sheet by sheet from 1:200 to 1:10, zooming from the whole parcel to the detail of signing up. The faint background grid grows with the scale, so the zoom is felt, not just labelled. Density is calm and technical: generous sheet padding, hairline rules between rows, a single family of type with tabular figures.\n\nColour is rationed by role. Navy draws everything. Green appears only where something is verified, checked or unlocked; its rarity is what makes \"verified\" mean something. The one full navy sheet is the closing call, the drawing's final sheet inverted.",
+    "keyCharacteristics": [
+      "Drafting-film ground, navy pen linework, green only for verified states.",
+      "Square corners everywhere; circles are reserved for beacons and keys.",
+      "Sheets, not cards: double-border frames, sheet/scale cells, scale-tied grids.",
+      "One type family (Overpass) with tabular numerals for every number.",
+      "Flat: depth comes from line weight, never shadow.",
+      "Motion is a survey traverse: lines drawn beacon to beacon, beacons turning green as checked."
+    ],
+    "rules": [
+      { "name": "The Verified-Only Green Rule", "body": "Green marks something checked, verified or unlocked, and nothing else. If an element is green and you cannot say what was verified, it is navy.", "section": "colors" },
+      { "name": "The Two-Ink Rule", "body": "Every surface is navy on film, or film on navy. No third hue enters except error red on an invalid field.", "section": "colors" },
+      { "name": "The Tabular Figures Rule", "body": "Every number is set with tabular figures (`font-variant-numeric: tabular-nums` on body and every SVG text). Bearings, distances, sheet numbers and step numbers must align like a schedule.", "section": "typography" },
+      { "name": "The One Family Rule", "body": "Overpass sets everything outside the wordmark. Montserrat never leaves the logo.", "section": "typography" },
+      { "name": "The Pen-Weight Rule", "body": "Hierarchy is drawn with three line weights: 1px rules divide, 1.5px pens draw objects, 2px heavy pens frame and emphasise. Never use a shadow or blur to lift anything.", "section": "elevation" },
+      { "name": "The Circles-Are-Beacons Rule", "body": "A circle always marks a point on the survey (beacon, key, station). Do not round a container, button or field.", "section": "shapes" }
+    ],
+    "dos": [
+      "**Do** draw every surface as a sheet with the double frame and a sheet/scale cell, and raise the scale as the story zooms in.",
+      "**Do** reserve green for verified, checked or unlocked states, using `green-text` for green type on film.",
+      "**Do** express trust as mechanism: beacons, bearings, overlaps, title-block schedules.",
+      "**Do** set every number in tabular figures.",
+      "**Do** separate rows with 1px rules and lead a schedule with a 2px pen rule.",
+      "**Do** keep the traverse animation behind `prefers-reduced-motion: no-preference`; reduced motion shows the finished, verified plan."
+    ],
+    "donts": [
+      "**Don't** use property photography or an image-under-search-bar hero.",
+      "**Don't** add shadows, blurs or rounded containers; depth is line weight only.",
+      "**Don't** use green as decoration or a generic accent.",
+      "**Don't** wrap content in cards; use sheets, title blocks and ruled schedules.",
+      "**Don't** introduce a second typeface outside the wordmark."
+    ]
+  }
+}

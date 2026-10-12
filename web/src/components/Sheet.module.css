@@ -1,0 +1,117 @@
+.sheet {
+  padding: var(--space-3) var(--gutter);
+}
+
+.frame {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: 6px;
+  border: var(--pen-heavy) solid var(--frame);
+}
+
+.inner {
+  position: relative;
+  padding: clamp(var(--space-3), 5vw, var(--space-5)) clamp(var(--space-2), 4vw, var(--space-5)) calc(var(--space-5) + var(--space-2));
+  border: 1px solid var(--frame-rule);
+}
+
+.grid {
+  --cell: calc(var(--unit) * 12);
+  background-image:
+    linear-gradient(var(--sheet-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sheet-grid) 1px, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  background-position: -1px -1px;
+}
+
+.fillViewport {
+  display: flex;
+  min-height: calc(100svh - var(--header-h));
+}
+
+.fillViewport .frame {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  max-width: var(--hero-max);
+}
+
+.fillViewport .inner {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  padding-block: var(--space-3) calc(var(--space-4) + var(--space-1));
+}
+
+.film {
+  --sheet-grid: var(--grid);
+  --frame: var(--navy);
+  --frame-rule: var(--rule);
+}
+
+.navy {
+  --sheet-grid: color-mix(in srgb, var(--on-navy) 6%, transparent);
+  --frame: var(--on-navy-soft);
+  --frame-rule: color-mix(in srgb, var(--on-navy) 25%, transparent);
+  background: var(--navy);
+  color: var(--on-navy);
+}
+
+.header {
+  max-width: 40rem;
+  margin-bottom: var(--space-4);
+}
+
+.header p {
+  margin-top: var(--space-2);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--navy-soft);
+}
+
+.navy .header p {
+  color: var(--on-navy-soft);
+}
+
+.cell {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  margin: 0;
+  border-top: 1px solid var(--frame-rule);
+  border-left: 1px solid var(--frame-rule);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.cell div {
+  padding: 0.4rem 0.8rem;
+}
+
+.cell div + div {
+  border-left: 1px solid var(--frame-rule);
+}
+
+.scaleBar {
+  display: flex;
+  margin-top: 0.3rem;
+}
+
+.scaleBar span {
+  width: var(--unit);
+  height: 5px;
+  border: 1px solid var(--frame);
+}
+
+.scaleBar span:nth-child(odd) {
+  background: var(--frame);
+}
+
+.cell dt {
+  opacity: 0.7;
+}
+
+.cell dd {
+  font-weight: 700;
+}

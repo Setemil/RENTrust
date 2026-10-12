@@ -1,0 +1,90 @@
+.traverse {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.station {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--space-4);
+}
+
+.route {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  right: calc(-1 * var(--space-4));
+  border-top: var(--pen-heavy) solid var(--navy);
+}
+
+.station:last-child .route {
+  right: 0;
+  border-top-style: dashed;
+}
+
+.beacon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border: var(--pen-heavy) solid var(--navy);
+  border-radius: 50%;
+  background: var(--film);
+}
+
+.station:last-child .beacon {
+  background: var(--green);
+}
+
+.number {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--navy-soft);
+}
+
+.station h3 {
+  margin-top: 0.35rem;
+}
+
+.station p {
+  margin-top: 0.5rem;
+  color: var(--navy-soft);
+}
+
+.station .unlocks {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  color: var(--green-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .traverse {
+    grid-auto-flow: row;
+    gap: 0;
+  }
+
+  .station {
+    padding: 0 0 var(--space-4) var(--space-4);
+  }
+
+  .route,
+  .station:last-child .route {
+    top: 0;
+    bottom: 0;
+    left: 7px;
+    right: auto;
+    border-top: 0;
+    border-left: var(--pen-heavy) solid var(--navy);
+  }
+
+  .station:last-child .route {
+    bottom: var(--space-4);
+    border-left-style: dashed;
+  }
+}

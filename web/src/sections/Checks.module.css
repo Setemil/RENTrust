@@ -1,0 +1,70 @@
+.layout {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.notes li {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+
+.notes li:first-child {
+  border-top: var(--pen-heavy) solid var(--navy);
+}
+
+.notes p {
+  margin-top: 0.35rem;
+  max-width: 34rem;
+  color: var(--navy-soft);
+}
+
+.key {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: var(--pen) solid var(--navy);
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: var(--text-sm);
+}
+
+/* Notes share the drawing's height in three equal rows, so each leader meets its key. */
+@media (min-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  .notes {
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+  }
+
+  .notes li {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    border-top: 1px solid var(--rule);
+  }
+
+  .notes li:first-child {
+    border-top: 0;
+  }
+
+  .notes li::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: calc(-1 * var(--space-4));
+    width: calc(var(--space-4) - var(--space-1));
+    border-top: 1px solid var(--navy-soft);
+  }
+
+  .key {
+    display: none;
+  }
+}

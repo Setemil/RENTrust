@@ -1,0 +1,41 @@
+:root {
+  --navy: #0e3b61;
+  --navy-soft: #41596e;
+  --green: #2a8651;
+  --green-text: #227044;
+  --green-on-navy: #8fd3a6;
+  --film: #f1f5f3;
+  --film-deep: #e4ebe8;
+  --on-navy: #f1f5f3;
+  --on-navy-soft: #a9c0d2;
+
+  --rule: color-mix(in srgb, var(--navy) 22%, transparent);
+  --grid: color-mix(in srgb, var(--navy) 7%, transparent);
+  --hatch: color-mix(in srgb, var(--green) 26%, transparent);
+  --error: #b42318;
+
+  --font: "Overpass Variable", "Overpass", system-ui, sans-serif;
+  --font-logo: "Montserrat Variable", "Montserrat", var(--font);
+
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.5rem, 1.1rem + 1.4vw, 2rem);
+  --text-2xl: clamp(2rem, 1.2rem + 3vw, 3.25rem);
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: clamp(4.5rem, 3rem + 6vw, 8rem);
+
+  --page-max: 84rem;
+  --hero-max: 160rem;
+  --gutter: clamp(1rem, 3.5vw, 2.5rem);
+  --header-h: 4rem;
+
+  --pen: 1.5px;
+  --pen-heavy: 2px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
