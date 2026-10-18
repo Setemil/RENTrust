@@ -1,0 +1,209 @@
+/* Every grid track and flex row here is allowed to shrink to 0, so inputs and tiles
+   never keep their intrinsic width and push past the title block on narrow phones. */
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.control {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.control input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--navy);
+  border-radius: 0;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+}
+
+/* Room for the eye button, which sits inside the field's right edge. */
+.control:has(.reveal) input {
+  padding-right: 2.9rem;
+}
+
+.control input::placeholder {
+  color: var(--navy-soft);
+  opacity: 0.8;
+}
+
+.control input[aria-invalid="true"] {
+  border-color: var(--error);
+  outline: 1px solid var(--error);
+}
+
+.control input:focus-visible {
+  outline: var(--pen-heavy) solid var(--green);
+  outline-offset: 0;
+}
+
+.reveal {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--navy-soft);
+  cursor: pointer;
+  transition: color 0.2s var(--ease-out);
+}
+
+.reveal:hover,
+.reveal[aria-pressed="true"] {
+  color: var(--navy);
+}
+
+.reveal:focus-visible {
+  outline-offset: -3px;
+}
+
+.hint {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--navy-soft);
+}
+
+.error {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--error);
+}
+
+/* Choice tiles: square radio cards, filled navy when picked. */
+.choices {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: 0.3rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(8.5rem, 100%), 1fr));
+  gap: 0.4rem;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--navy);
+  background: #fff;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.tile:hover {
+  background: var(--film-deep);
+}
+
+.tile input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tile:has(input:checked) {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+
+.tile:has(input:focus-visible) {
+  outline: var(--pen-heavy) solid var(--green);
+  outline-offset: 2px;
+}
+
+.alert {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--error);
+  background: #fff;
+  color: var(--error);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.status {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.submit {
+  justify-self: start;
+  min-width: 10rem;
+}
+
+.submit:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.submit:disabled:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
+.foot {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+}
+
+.foot a {
+  font-weight: 700;
+  color: var(--navy);
+}

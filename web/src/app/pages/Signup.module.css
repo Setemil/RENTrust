@@ -1,0 +1,53 @@
+/* The checks still to come, as stations on a traverse: open beacons on a dashed leg. */
+.steps {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.steps::before {
+  content: "";
+  position: absolute;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  left: 7px;
+  border-left: var(--pen-heavy) dashed var(--navy);
+}
+
+.steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px 1.75rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.beacon {
+  width: 16px;
+  height: 16px;
+  margin-top: 0.2rem;
+  border: var(--pen-heavy) solid var(--navy);
+  border-radius: 50%;
+  background: var(--film);
+}
+
+.num {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--navy-soft);
+  line-height: 1.6;
+}
+
+.steps strong {
+  display: block;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.stepBody {
+  display: block;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--navy-soft);
+}

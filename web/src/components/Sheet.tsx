@@ -13,12 +13,14 @@ type SheetProps = {
   tone?: "film" | "navy";
   grid?: boolean;
   fillViewport?: boolean;
+  headingLevel?: 1 | 2;
   className?: string;
   children: ReactNode;
 };
 
-export default function Sheet({ id, sheet, title, intro, tone = "film", grid = true, fillViewport = false, className = "", children }: SheetProps) {
+export default function Sheet({ id, sheet, title, intro, tone = "film", grid = true, fillViewport = false, headingLevel = 2, className = "", children }: SheetProps) {
   const titleId = title ? `${id}-title` : undefined;
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <section
       id={id}
@@ -30,7 +32,7 @@ export default function Sheet({ id, sheet, title, intro, tone = "film", grid = t
         <div className={`${styles.inner} ${grid ? styles.grid : ""}`}>
           {title && (
             <header className={styles.header}>
-              <h2 id={titleId}>{title}</h2>
+              <Heading id={titleId}>{title}</Heading>
               {intro && <p>{intro}</p>}
             </header>
           )}

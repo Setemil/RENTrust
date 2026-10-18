@@ -1,0 +1,117 @@
+.schedule {
+  max-width: 60rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-bottom: 0.7rem;
+  border-bottom: var(--pen-heavy) solid var(--navy);
+}
+
+.head h2 {
+  font-size: var(--text-lg);
+  letter-spacing: -0.015em;
+}
+
+.head p {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--navy-soft);
+}
+
+/* One ruled row per check: beacon, what, status, what it unlocks. */
+.row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1.1fr) 8.5rem minmax(0, 1.5fr);
+  gap: 0.5rem var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.beacon {
+  align-self: start;
+  width: 16px;
+  height: 16px;
+  margin-top: 0.2rem;
+  border: var(--pen-heavy) solid var(--navy);
+  border-radius: 50%;
+  background: var(--film);
+}
+
+.what h3 {
+  font-size: var(--text-base);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.what p {
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+}
+
+.status {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.unlocks {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--navy-soft);
+}
+
+.unlocks span {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* Green is earned: only a verified check turns its beacon and status green. */
+.row[data-state="verified"] .beacon {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.row[data-state="verified"] .status,
+.row[data-state="verified"] .unlocks span {
+  color: var(--green-text);
+}
+
+.row[data-state="pending"] .beacon {
+  background: radial-gradient(circle, var(--navy) 0 3px, var(--film) 3.5px);
+}
+
+.row[data-state="rejected"] .beacon {
+  border-color: var(--error);
+}
+
+.row[data-state="rejected"] .status {
+  color: var(--error);
+}
+
+.note {
+  max-width: 40rem;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+}
+
+.note a {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+@media (max-width: 760px) {
+  .row {
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+  }
+
+  .unlocks {
+    grid-column: 2 / -1;
+  }
+}

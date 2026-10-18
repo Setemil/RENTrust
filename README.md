@@ -105,12 +105,12 @@ cp .env.example .env   # then set DATABASE_URL and JWT_SECRET
 npm install            # also generates the Prisma client
 npm run db:migrate     # apply migrations
 npm run db:seed        # seed roles
-npm run dev            # http://localhost:5000
+npm run dev            # http://localhost:5050
 ```
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
-| `PORT` | API port | `5000` |
+| `PORT` | API port | `5050` (5000 is taken by AirPlay Receiver on macOS) |
 | `DATABASE_URL` | PostgreSQL connection string | required |
 | `JWT_SECRET` | Token signing secret | required |
 | `JWT_EXPIRES_IN` | Token lifetime | `1d` |

@@ -1,0 +1,52 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* A ruled schedule: label left in faded pen, value right in full weight. */
+.details {
+  display: grid;
+}
+
+.details div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.details div:first-child {
+  padding-top: 0;
+}
+
+.details div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.details dt {
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+  line-height: 1.6;
+}
+
+.details dd {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .details div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

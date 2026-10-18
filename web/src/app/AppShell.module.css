@@ -1,0 +1,116 @@
+/* Small phones: step the whole type scale down a notch. Inputs stay at 16px so iOS doesn't zoom on focus. */
+@media (max-width: 400px) {
+  .app {
+    --text-sm: 0.8125rem;
+    --text-base: 1rem;
+    --text-lg: 1.0625rem;
+    --text-2xl: 1.75rem;
+    font-size: var(--text-base);
+  }
+}
+
+.header {
+  height: var(--header-h);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--film);
+  border-bottom: 1px solid var(--rule);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: calc(var(--page-max) + 2 * var(--gutter));
+  height: 100%;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.home {
+  display: inline-flex;
+  margin-right: auto;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  align-self: stretch;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  border-bottom: var(--pen-heavy) solid transparent;
+  margin-bottom: -1px;
+  color: var(--navy-soft);
+  text-decoration: none;
+}
+
+.nav a:hover {
+  color: var(--navy);
+}
+
+.nav a[aria-current="page"] {
+  color: var(--navy);
+  font-weight: 700;
+  border-bottom-color: var(--navy);
+}
+
+.who {
+  max-width: 14rem;
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--rule);
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.switch {
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+}
+
+.switch a {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.loading {
+  padding: var(--space-5) var(--gutter);
+  text-align: center;
+  color: var(--navy-soft);
+}
+
+@media (max-width: 860px) {
+  .who {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .inner {
+    gap: var(--space-2);
+  }
+
+  .nav {
+    gap: var(--space-2);
+  }
+
+  /* Drop the wordmark and keep the mark, so the header stays one row on small phones. */
+  .home :global(svg) + span {
+    display: none;
+  }
+
+  .switch {
+    max-width: 11rem;
+    text-align: right;
+    line-height: 1.35;
+  }
+}
