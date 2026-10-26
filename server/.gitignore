@@ -2,3 +2,6 @@ node_modules
 dist
 .env
 generated/
+
+# Private password for test accounts seeded on a hosted environment
+.seed-password

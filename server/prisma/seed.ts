@@ -2,8 +2,9 @@ import { prisma } from "../config/db";
 import { RoleName, type Prisma } from "../generated/prisma/client";
 import { hashPassword } from "../models/user";
 
-// Test data for local development only. Every account uses the same password.
-const PASSWORD = "rentrust-test";
+// Test data. Every account uses the same password: SEED_PASSWORD if set (always set it for a
+// hosted environment, since the default is published in the README), otherwise "rentrust-test".
+const PASSWORD = process.env.SEED_PASSWORD || "rentrust-test";
 const CONSENT_VERSION = "draft-2026-10";
 
 type SeedUser = {
@@ -215,7 +216,7 @@ async function main() {
   }
 
   console.log("Seeded roles, test accounts and listings.");
-  console.log(`Password for every test account: ${PASSWORD}`);
+  console.log(process.env.SEED_PASSWORD ? "Password for every test account: the SEED_PASSWORD you set." : `Password for every test account: ${PASSWORD}`);
   for (const u of users) console.log(`  ${u.role.padEnd(8)} ${u.email}`);
 }
 
