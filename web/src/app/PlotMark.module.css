@@ -1,0 +1,36 @@
+.plot {
+  flex: none;
+  display: block;
+}
+
+.fill {
+  fill: none;
+}
+
+.line {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-dasharray: 3 2.5;
+}
+
+.beacon {
+  fill: var(--film);
+  stroke: var(--navy);
+  stroke-width: 1.5;
+}
+
+.plot[data-verified] .fill {
+  fill: var(--hatch);
+}
+
+.plot[data-verified] .line {
+  stroke: var(--green);
+  stroke-dasharray: none;
+}
+
+.plot[data-verified] .beacon {
+  fill: var(--green);
+  stroke: var(--green);
+}

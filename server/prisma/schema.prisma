@@ -1,4 +1,5 @@
-// Identity & access tables from RENTrust_MVP_Backend_Flow_and_ERD.excalidraw.
+// Tables from RENTrust_MVP_Backend_Flow_and_ERD.excalidraw: identity, property & listing,
+// interest & screening, and platform (notifications, audit). Later phases are not modelled yet.
 
 generator client {
   provider = "prisma-client"
@@ -59,6 +60,18 @@ model User {
   roles    UserRole[]
   consents Consent[]
 
+  otpCodes          OtpCode[]
+  verifications     Verification[]     @relation("VerificationSubmitter")
+  reviews           Verification[]     @relation("VerificationReviewer")
+  properties        Property[]
+  savedListings     SavedListing[]
+  termsAcceptances  TermsAcceptance[]
+  interests         Interest[]         @relation("InterestSeeker")
+  decisions         Interest[]         @relation("InterestDecider")
+  reportAccesses    ReportAccessLog[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+
   @@map("users")
 }
 
@@ -94,4 +107,332 @@ model Consent {
 
   @@index([userId])
   @@map("consents")
+}
+
+// ---------- Identity checks ----------
+
+enum OtpChannel {
+  EMAIL
+  PHONE
+}
+
+model OtpCode {
+  id         String     @id @default(uuid()) @db.Uuid
+  userId     String     @map("user_id") @db.Uuid
+  channel    OtpChannel
+  codeHash   String     @map("code_hash")
+  expiresAt  DateTime   @map("expires_at")
+  consumedAt DateTime?  @map("consumed_at")
+  attempts   Int        @default(0)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, channel])
+  @@map("otp_codes")
+}
+
+enum VerificationSubject {
+  USER
+  PROPERTY
+}
+
+enum VerificationKind {
+  IDENTITY  // individual KYC
+  BUSINESS  // organisation KYB
+  OWNERSHIP // landlord owns the property
+  MANDATE   // agent is authorised to let the property
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Verification {
+  id            String              @id @default(uuid()) @db.Uuid
+  subjectType   VerificationSubject @map("subject_type")
+  subjectId     String              @map("subject_id") @db.Uuid
+  kind          VerificationKind
+  provider      String
+  providerRef   String?             @map("provider_ref")
+  status        VerificationStatus  @default(PENDING)
+  // What was submitted (ID type, masked number, document reference). Never shown outside the reviewer and the submitter.
+  data          Json                @default("{}")
+  submittedById String              @map("submitted_by") @db.Uuid
+  reviewedById  String?             @map("reviewed_by") @db.Uuid
+  reviewedAt    DateTime?           @map("reviewed_at")
+  reviewNote    String?             @map("review_note")
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  submittedBy User  @relation("VerificationSubmitter", fields: [submittedById], references: [id], onDelete: Cascade)
+  reviewedBy  User? @relation("VerificationReviewer", fields: [reviewedById], references: [id])
+
+  @@index([subjectType, subjectId])
+  @@index([status])
+  @@map("verifications")
+}
+
+// ---------- Property & listing ----------
+
+enum PropertyType {
+  RESIDENTIAL
+  SHORT_LET
+  OFFICE
+}
+
+enum Furnishing {
+  UNFURNISHED
+  SEMI_FURNISHED
+  FURNISHED
+}
+
+enum ListedAs {
+  OWNER
+  AGENT
+}
+
+model Property {
+  id                 String       @id @default(uuid()) @db.Uuid
+  listerId           String       @map("lister_id") @db.Uuid
+  listedAs           ListedAs     @default(OWNER) @map("listed_as")
+  type               PropertyType
+  title              String
+  state              String
+  lga                String
+  area               String
+  address            String
+  bedrooms           Int          @default(0)
+  bathrooms          Int          @default(0)
+  sizeSqm            Int?         @map("size_sqm")
+  furnishing         Furnishing   @default(UNFURNISHED)
+  amenities          Json         @default("[]")
+  description        String       @default("")
+  verificationStatus KycStatus    @default(NOT_STARTED) @map("verification_status")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  lister  User     @relation(fields: [listerId], references: [id], onDelete: Cascade)
+  listing Listing?
+
+  @@index([listerId])
+  @@map("properties")
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  LIVE
+  PAUSED
+  OCCUPIED
+  EXPIRED
+  SUSPENDED
+}
+
+enum RentPeriod {
+  YEAR
+  MONTH
+  NIGHT
+}
+
+model Listing {
+  id            String        @id @default(uuid()) @db.Uuid
+  // Short public reference, shown as RT-0001.
+  ref           Int           @unique @default(autoincrement())
+  propertyId    String        @unique @map("property_id") @db.Uuid
+  rentAmount    Int           @map("rent_amount")
+  rentPeriod    RentPeriod    @default(YEAR) @map("rent_period")
+  serviceCharge Int?          @map("service_charge")
+  // Every other disclosed charge: [{ label, amount }].
+  otherCharges  Json          @default("[]") @map("other_charges")
+  currency      String        @default("NGN")
+  availableFrom DateTime?     @map("available_from") @db.Date
+  status        ListingStatus @default(DRAFT)
+  reviewNote    String?       @map("review_note")
+  publishedAt   DateTime?     @map("published_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  property  Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  terms     LandlordTerms[]
+  saves     SavedListing[]
+  interests Interest[]
+
+  @@index([status])
+  @@map("listings")
+}
+
+// Versioned and immutable: editing terms writes a new version.
+model LandlordTerms {
+  id          String   @id @default(uuid()) @db.Uuid
+  listingId   String   @map("listing_id") @db.Uuid
+  version     Int
+  content     Json
+  effectiveAt DateTime @default(now()) @map("effective_at")
+
+  listing     Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  acceptances TermsAcceptance[]
+  interests   Interest[]
+
+  @@unique([listingId, version])
+  @@map("landlord_terms")
+}
+
+model TermsAcceptance {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  termsId    String   @map("terms_id") @db.Uuid
+  acceptedAt DateTime @default(now()) @map("accepted_at")
+  ip         String?
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  terms LandlordTerms @relation(fields: [termsId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, termsId])
+  @@map("terms_acceptances")
+}
+
+model SavedListing {
+  userId    String   @map("user_id") @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([userId, listingId])
+  @@map("saved_listings")
+}
+
+// ---------- Interest & screening ----------
+
+enum InterestStatus {
+  INITIATED
+  TERMS_ACCEPTED
+  KYC_CONFIRMED
+  REPORT_REQUESTED
+  REPORT_READY
+  AWAITING_DECISION
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+model Interest {
+  id              String         @id @default(uuid()) @db.Uuid
+  seekerId        String         @map("seeker_id") @db.Uuid
+  listingId       String         @map("listing_id") @db.Uuid
+  termsId         String         @map("terms_id") @db.Uuid
+  termsAcceptedAt DateTime       @map("terms_accepted_at")
+  status          InterestStatus @default(INITIATED)
+  message         String?
+  // Internal only. Never shown to the renter.
+  decisionReason  String?        @map("decision_reason")
+  decidedById     String?        @map("decided_by") @db.Uuid
+  decidedAt       DateTime?      @map("decided_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  seeker    User             @relation("InterestSeeker", fields: [seekerId], references: [id], onDelete: Cascade)
+  decidedBy User?            @relation("InterestDecider", fields: [decidedById], references: [id])
+  listing   Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  terms     LandlordTerms    @relation(fields: [termsId], references: [id])
+  report    CharacterReport?
+
+  @@index([seekerId])
+  @@index([listingId])
+  @@map("interests")
+}
+
+enum ReportStatus {
+  REQUESTED
+  READY
+  FAILED
+}
+
+model CharacterReport {
+  id                 String       @id @default(uuid()) @db.Uuid
+  interestId         String       @unique @map("interest_id") @db.Uuid
+  provider           String
+  providerRef        String?      @map("provider_ref")
+  source             String?
+  reportDate         DateTime?    @map("report_date") @db.Date
+  verificationStatus String?      @map("verification_status")
+  // Only the minimum the landlord needs. No scores or inferred traits.
+  payload            Json?
+  status             ReportStatus @default(REQUESTED)
+  retainUntil        DateTime?    @map("retain_until") @db.Date
+  createdAt          DateTime     @default(now()) @map("created_at")
+
+  interest Interest          @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  accesses ReportAccessLog[]
+
+  @@map("character_reports")
+}
+
+model ReportAccessLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  reportId     String   @map("report_id") @db.Uuid
+  accessedById String   @map("accessed_by") @db.Uuid
+  accessedAt   DateTime @default(now()) @map("accessed_at")
+  ip           String?
+
+  report     CharacterReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  accessedBy User            @relation(fields: [accessedById], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@map("report_access_logs")
+}
+
+// ---------- Platform ----------
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+}
+
+enum NotificationStatus {
+  SENT
+  SIMULATED // email/SMS gateways are not connected yet
+  FAILED
+}
+
+model Notification {
+  id          String              @id @default(uuid()) @db.Uuid
+  userId      String              @map("user_id") @db.Uuid
+  event       String
+  channel     NotificationChannel
+  title       String
+  body        String
+  link        String?
+  relatedType String?             @map("related_type")
+  relatedId   String?             @map("related_id") @db.Uuid
+  status      NotificationStatus  @default(SENT)
+  readAt      DateTime?           @map("read_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, channel, readAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  before     Json?
+  after      Json?
+  ip         String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

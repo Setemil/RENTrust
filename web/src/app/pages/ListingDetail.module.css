@@ -1,0 +1,153 @@
+.price {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.plate {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2);
+  border: var(--pen-heavy) solid var(--navy);
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.checks div {
+  display: grid;
+  gap: 0.2rem;
+  align-content: start;
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--rule);
+}
+
+.checks dt {
+  font-size: 0.8125rem;
+  color: var(--navy-soft);
+}
+
+.checks dd {
+  display: grid;
+  gap: 0.2rem;
+  font-weight: 700;
+}
+
+.description {
+  margin-top: var(--space-3);
+}
+
+.amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: var(--space-3);
+}
+
+.amenities li {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.charges {
+  width: 100%;
+  max-width: 34rem;
+  border-collapse: collapse;
+}
+
+.charges th,
+.charges td {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--text-base);
+  text-align: left;
+}
+
+.charges th {
+  font-weight: 400;
+  color: var(--navy-soft);
+}
+
+.charges td {
+  font-weight: 700;
+  text-align: right;
+}
+
+.charges tfoot th,
+.charges tfoot td {
+  border-top: var(--pen-heavy) solid var(--navy);
+  border-bottom: 0;
+  color: var(--navy);
+  font-weight: 800;
+}
+
+.subhead {
+  margin-bottom: 0.5rem;
+  font-size: var(--text-base);
+}
+
+.conditions {
+  display: grid;
+  gap: 0.4rem;
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+
+.conditions li::marker {
+  font-weight: 700;
+  color: var(--navy-soft);
+}
+
+.aside {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-2));
+}
+
+.gate {
+  display: grid;
+  gap: 0.7rem;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.gate p {
+  margin: 0.15rem 0 0 calc(12px + 0.45rem);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--navy-soft);
+}
+
+@media (max-width: 960px) {
+  .aside {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .plate {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plate > svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .checks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .checks div {
+    padding: 0.5rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+}

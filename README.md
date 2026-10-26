@@ -44,15 +44,15 @@ Listing subscriptions, featured listings, transaction platform fees, optional re
 
 ```
 RENTrust/
-├── web/        Public landing site (Vite + React + TypeScript)
+├── web/        Landing page and signed-in app (Vite + React + TypeScript)
 ├── server/     API (Express 5 + TypeScript + Prisma + PostgreSQL)
 ├── RENTrust_Developer_Architecture_Business_Model_Workflow.docx
 └── RENTrust_MVP_Backend_Flow_and_ERD.excalidraw
 ```
 
-### `web/`: landing site
+### `web/`: landing site and app
 
-A single public page that introduces RENTrust to renters (first) and landlords, and collects waitlist sign-ups for Lagos and Abuja. The page is designed as a survey plan, because RENTrust checks a rental the way a surveyor checks a plot. It does not contain the marketplace or any authenticated features yet.
+The public landing page (`/`) introduces RENTrust and collects waitlist sign-ups. It is designed as a set of numbered survey-plan sheets. The signed-in app (`/app`, plus `/login` and `/signup`) keeps the same colours, type and square, ruled look, but without the sheet frames. App code lives in `web/src/app/`: shared UI in `ui.tsx`, `Form.tsx` and `Traverse.tsx`, and one file per area in `pages/`.
 
 ```
 web/src/
@@ -74,15 +74,32 @@ web/src/
 
 ### `server/`: API
 
-Express 5 with Prisma 7 on PostgreSQL. The identity layer exists so far: users, roles, user roles and consents. Auth is JWT-based.
+Express 5 with Prisma 7 on PostgreSQL, JWT auth. The MVP covers the trust loop up to the landlord's decision: account checks, property and listing verification, versioned landlord terms, show interest, character report and approve/reject. Inspection, agreements, payments and tenancy come next.
 
-| Method | Route | Description |
-| --- | --- | --- |
-| GET | `/api/v1/health` | Health check |
-| POST | `/api/v1/auth/register` | Create an account |
-| POST | `/api/v1/auth/login` | Sign in and receive a token |
-| GET | `/api/v1/auth/me` | Current user (auth required) |
-| PATCH | `/api/v1/auth/password` | Change password (auth required) |
+```
+server/
+├── controllers/   auth, account (OTP, consents, KYC/KYB), property, marketplace, interest, notification, admin
+├── routers/       authRouter (public) and appRouter (everything behind requireAuth + role checks)
+├── services/      characterReport.ts: the simulated report provider (swap for a real one here)
+├── lib/           audit log writer, notifications, input checks
+└── prisma/        schema, migrations and seed (test accounts and listings)
+```
+
+| Area | Routes (all under `/api/v1`, all need a signed-in account) |
+| --- | --- |
+| Account checks | `GET /account/status`, `POST /account/otp/send`, `POST /account/otp/verify`, `POST /account/consents`, `POST /account/verification` |
+| Marketplace | `GET /listings`, `GET /listings/:id`, `POST /listings/:id/terms/accept`, `POST` / `DELETE /listings/:id/save` |
+| Landlord / agent | `GET` / `POST /properties`, `GET` / `PATCH /properties/:id`, `PUT /properties/:id/terms`, `POST /properties/:id/submit`, `POST /properties/:id/availability` |
+| Interests | `POST /interests`, `GET /interests/mine`, `GET /interests/received`, `GET /interests/:id`, `GET /interests/:id/report` (logged), `PATCH /interests/:id/decision`, `POST /interests/:id/withdraw` |
+| Notifications | `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:id/read`, `POST /notifications/read-all` |
+| Admin | `GET /admin/overview`, `GET` / `PATCH /admin/verifications`, `GET` / `PATCH /admin/listings`, `GET` / `PATCH /admin/users`, `GET /admin/interests`, `GET /admin/audit` |
+
+What is simulated until providers are chosen (the UI labels each one "Test mode"):
+
+- **Email and SMS codes:** outside production the code is returned to the page and logged by the server.
+- **KYC / KYB and property documents:** go to the admin review queue. Only a masked ID number and a document reference are stored; there is no file upload yet.
+- **Character report:** `services/characterReport.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
+- **Email and SMS notifications:** stored as `SIMULATED` rows next to the in-app notification. Report content never goes in them.
 
 ## Getting started
 
@@ -104,9 +121,26 @@ cd server
 cp .env.example .env   # then set DATABASE_URL and JWT_SECRET
 npm install            # also generates the Prisma client
 npm run db:migrate     # apply migrations
-npm run db:seed        # seed roles
+npm run db:seed        # roles, test accounts and test listings
 npm run dev            # http://localhost:5050
 ```
+
+`npm run db:reset` wipes the database, re-applies migrations and re-seeds. It deletes every account, not just the test ones.
+
+### Testing the MVP
+
+Every seeded account uses the password `rentrust-test`.
+
+| Account | Use it to |
+| --- | --- |
+| `renter@rentrust.test` | Browse, accept a landlord's terms, show interest, follow progress |
+| `company@rentrust.test` | The same, as an organisation (KYB) |
+| `newrenter@rentrust.test` | See the experience while an identity check is still in review |
+| `landlord@rentrust.test` | Manage listings (one is waiting for review), open character reports, approve or reject |
+| `agent@rentrust.test` | List as an agent (mandate instead of ownership) |
+| `admin@rentrust.test` | Approve identity checks, property documents and listings; see users, interests and the audit log |
+
+A full loop: sign in as the renter and show interest in a Bola Adeyemi listing. Sign in as the landlord; the report is ready a few seconds later under Enquiries. Open it, then approve or reject. The renter sees the decision under My interests and Notifications. To test sign-up, create a new account, confirm email and phone with the codes shown on screen, accept the terms, submit an ID check, then approve it as the admin.
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
@@ -115,6 +149,7 @@ npm run dev            # http://localhost:5050
 | `JWT_SECRET` | Token signing secret | required |
 | `JWT_EXPIRES_IN` | Token lifetime | `1d` |
 | `CLIENT_URL` | Allowed CORS origin | `http://localhost:5173` |
+| `REPORT_DELAY_MS` | Delay before the simulated character report is ready | `4000` |
 
 ## MVP build order
 

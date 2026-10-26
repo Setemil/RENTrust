@@ -40,3 +40,18 @@
   padding: 0.4rem 1rem;
   font-size: var(--text-sm);
 }
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button:disabled:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
+.outline:disabled:hover {
+  background: transparent;
+  color: var(--navy);
+}

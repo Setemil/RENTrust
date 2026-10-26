@@ -1,0 +1,46 @@
+.cell {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.path {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.path p {
+  margin: 0.15rem 0 0 calc(12px + 0.45rem);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--navy-soft);
+}
+
+.availability {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: start;
+}
+
+.editor {
+  max-width: 40rem;
+}
+
+.history {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.history summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.history ul {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  color: var(--navy-soft);
+}

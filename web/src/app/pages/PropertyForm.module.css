@@ -1,0 +1,65 @@
+.form {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 46rem;
+}
+
+.form > fieldset {
+  gap: var(--space-3);
+}
+
+.four {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.list {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.list > legend {
+  padding: 0;
+  margin-bottom: 0.3rem;
+}
+
+.listRow,
+.chargeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  width: 100%;
+}
+
+.chargeRow {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+}
+
+.listRow button,
+.chargeRow button {
+  min-height: 2.75rem;
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 640px) {
+  .four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chargeRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  }
+
+  .chargeRow button {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: auto;
+  }
+}

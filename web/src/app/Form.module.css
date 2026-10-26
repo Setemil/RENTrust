@@ -37,7 +37,9 @@
   min-width: 0;
 }
 
-.control input {
+.control input,
+.control select,
+.control textarea {
   flex: 1;
   width: 100%;
   min-width: 0;
@@ -55,17 +57,48 @@
   padding-right: 2.9rem;
 }
 
-.control input::placeholder {
+.control textarea {
+  min-height: 6rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.select select {
+  appearance: none;
+  padding-right: 2.4rem;
+  cursor: pointer;
+}
+
+/* Drawn caret in the pen weight, replacing the native chevron. */
+.select::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0.95rem;
+  width: 7px;
+  height: 7px;
+  border-right: var(--pen) solid var(--navy);
+  border-bottom: var(--pen) solid var(--navy);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.control input::placeholder,
+.control textarea::placeholder {
   color: var(--navy-soft);
   opacity: 0.8;
 }
 
-.control input[aria-invalid="true"] {
+.control input[aria-invalid="true"],
+.control select[aria-invalid="true"],
+.control textarea[aria-invalid="true"] {
   border-color: var(--error);
   outline: 1px solid var(--error);
 }
 
-.control input:focus-visible {
+.control input:focus-visible,
+.control select:focus-visible,
+.control textarea:focus-visible {
   outline: var(--pen-heavy) solid var(--green);
   outline-offset: 0;
 }
@@ -206,4 +239,82 @@
 .foot a {
   font-weight: 700;
   color: var(--navy);
+}
+
+.check {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.check input {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.05rem 0 0;
+  border: var(--pen-heavy) solid var(--navy);
+  border-radius: 0;
+  background: #fff;
+  cursor: pointer;
+}
+
+.check input::after {
+  content: "";
+  width: 0.35rem;
+  height: 0.65rem;
+  margin-top: -0.15rem;
+  border-right: 2.5px solid var(--on-navy);
+  border-bottom: 2.5px solid var(--on-navy);
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.15s var(--ease-out);
+}
+
+.check input:checked {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.check input:checked::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.check input:focus-visible {
+  outline: var(--pen-heavy) solid var(--green);
+  outline-offset: 2px;
+}
+
+.check input[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem var(--space-2);
+}
+
+fieldset.group {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+fieldset.group > legend {
+  padding: 0 0 0.5rem;
+  margin-bottom: 0.25rem;
+  width: 100%;
+  border-bottom: 1px solid var(--navy);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: -0.015em;
 }

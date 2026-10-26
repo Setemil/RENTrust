@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import button from "../../components/Button.module.css";
-import Sheet from "../../components/Sheet";
 import TitleBlock from "../../components/TitleBlock";
 import { api } from "../api";
 import { useAuth } from "../auth";
 import { Field, clearErrorOnInput, formStyles } from "../Form";
+import { Page } from "../ui";
 import { displayName, formatDate, roleLabels } from "../user";
 import styles from "./Profile.module.css";
 
@@ -100,14 +100,7 @@ export default function Profile() {
   ];
 
   return (
-    <Sheet
-      id="profile"
-      sheet={{ number: 2, total: 2, scale: 20 }}
-      headingLevel={1}
-      title="Your profile"
-      intro="The details RENTrust holds for your account."
-    >
-      <title>Profile | RENTrust</title>
+    <Page title="Your profile" intro="The details RENTrust holds for your account.">
       <div className={styles.layout}>
         <TitleBlock title="Account details" meta={user.status === "ACTIVE" ? "Active" : "Suspended"}>
           <dl className={styles.details}>
@@ -123,6 +116,6 @@ export default function Profile() {
           <ChangePassword />
         </TitleBlock>
       </div>
-    </Sheet>
+    </Page>
   );
 }

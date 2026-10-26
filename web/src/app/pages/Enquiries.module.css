@@ -1,0 +1,142 @@
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--rule);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: var(--pen-heavy) solid transparent;
+  background: none;
+  color: var(--navy-soft);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.filters button:hover {
+  color: var(--navy);
+}
+
+.filters button[aria-selected="true"] {
+  color: var(--navy);
+  font-weight: 700;
+  border-bottom-color: var(--navy);
+}
+
+.filters button span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filters button[aria-selected="true"] span {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+
+.provenance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--navy);
+  font-size: 0.8125rem;
+}
+
+.provenance dt {
+  color: var(--navy-soft);
+}
+
+.provenance dd {
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.log {
+  font-size: var(--text-sm);
+}
+
+.log summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.log ul {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  color: var(--navy-soft);
+}
+
+.choices {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  gap: 0.7rem;
+  padding: 0.8rem;
+  border: 1px solid var(--navy);
+  background: #fff;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-out);
+}
+
+.choice:hover {
+  background: var(--film-deep);
+}
+
+.choice strong {
+  display: block;
+  font-size: var(--text-base);
+}
+
+.choice input {
+  appearance: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.2rem 0 0;
+  border: var(--pen-heavy) solid var(--navy);
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.choice input:checked {
+  background: radial-gradient(circle, var(--navy) 0 3.5px, #fff 4px);
+}
+
+.choice input:focus-visible {
+  outline: var(--pen-heavy) solid var(--green);
+  outline-offset: 2px;
+}
+
+.choice:has(input:checked) {
+  outline: 1px solid var(--navy);
+}
+
+.choice[data-disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

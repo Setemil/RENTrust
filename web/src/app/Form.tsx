@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { useId, useState, type FormEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import styles from "./Form.module.css";
 
 // Drawn in the 1.5px pen weight. Crossed means the password is visible and the button will hide it.
@@ -17,7 +17,7 @@ function EyeIcon({ crossed }: { crossed: boolean }) {
   );
 }
 
-type FieldProps =InputHTMLAttributes<HTMLInputElement> & {
+type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   name: string;
   hint?: string;
@@ -101,10 +101,111 @@ export function ChoiceGroup<T extends string>({ legend, name, value, options, on
   );
 }
 
+type SelectFieldProps = SelectHTMLAttributes<HTMLSelectElement> & {
+  label: string;
+  name: string;
+  options: readonly { value: string; label: string }[];
+  hint?: string;
+  error?: string;
+};
+
+export function SelectField({ label, options, hint, error, ...select }: SelectFieldProps) {
+  const id = useId();
+  const showHint = hint && !error;
+  return (
+    <div className={styles.field}>
+      <label htmlFor={id} className={styles.label}>
+        {label}
+      </label>
+      <div className={`${styles.control} ${styles.select}`}>
+        <select
+          id={id}
+          aria-invalid={Boolean(error)}
+          aria-describedby={(error && `${id}-error`) || (showHint && `${id}-hint`) || undefined}
+          {...select}
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      {error && (
+        <p id={`${id}-error`} className={styles.error}>
+          {error}
+        </p>
+      )}
+      {showHint && (
+        <p id={`${id}-hint`} className={styles.hint}>
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+type TextAreaFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  label: string;
+  name: string;
+  hint?: string;
+  error?: string;
+};
+
+export function TextAreaField({ label, hint, error, rows = 4, ...area }: TextAreaFieldProps) {
+  const id = useId();
+  const showHint = hint && !error;
+  return (
+    <div className={styles.field}>
+      <label htmlFor={id} className={styles.label}>
+        {label}
+      </label>
+      <div className={styles.control}>
+        <textarea
+          id={id}
+          rows={rows}
+          aria-invalid={Boolean(error)}
+          aria-describedby={(error && `${id}-error`) || (showHint && `${id}-hint`) || undefined}
+          {...area}
+        />
+      </div>
+      {error && (
+        <p id={`${id}-error`} className={styles.error}>
+          {error}
+        </p>
+      )}
+      {showHint && (
+        <p id={`${id}-hint`} className={styles.hint}>
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// A square drawn checkbox; the tick is green because ticking it is a confirmation.
+export function CheckField({ children, error, ...input }: InputHTMLAttributes<HTMLInputElement> & { children: ReactNode; error?: string }) {
+  const id = useId();
+  return (
+    <div className={styles.field}>
+      <label htmlFor={id} className={styles.check}>
+        <input id={id} type="checkbox" aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} {...input} />
+        <span>{children}</span>
+      </label>
+      {error && (
+        <p id={`${id}-error`} className={styles.error}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // Clears a field's error as soon as the user edits it. Pass the result to the <form>'s onInput.
 export function clearErrorOnInput<K extends string>(setErrors: (update: (prev: Partial<Record<K, string>>) => Partial<Record<K, string>>) => void) {
   return (event: FormEvent<HTMLFormElement>) => {
     const name = (event.target as HTMLInputElement).name as K;
+    if (!name) return;
     setErrors((prev) => (prev[name] ? { ...prev, [name]: undefined } : prev));
   };
 }
