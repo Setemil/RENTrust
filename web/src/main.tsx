@@ -19,6 +19,7 @@ import { PropertyDetail, PropertyList } from "./app/pages/Properties";
 import { EditProperty, NewProperty } from "./app/pages/PropertyForm";
 import Signup from "./app/pages/Signup";
 import RequireRole from "./app/RequireRole";
+import { ToastProvider } from "./app/toast";
 import "./styles/tokens.css";
 import "./styles/base.css";
 
@@ -29,38 +30,40 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route element={<GuestLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-          </Route>
-          <Route path="/app" element={<AppLayout />}>
-            <Route index element={<Home />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="listings" element={<Listings />} />
-            <Route path="listings/saved" element={<Listings savedOnly key="saved" />} />
-            <Route path="listings/:id" element={<ListingDetail />} />
-            <Route path="interests" element={renter(<InterestList />)} />
-            <Route path="interests/:id" element={renter(<InterestDetail />)} />
-            <Route path="properties" element={lister(<PropertyList />)} />
-            <Route path="properties/new" element={lister(<NewProperty />)} />
-            <Route path="properties/:id" element={lister(<PropertyDetail />)} />
-            <Route path="properties/:id/edit" element={lister(<EditProperty />)} />
-            <Route path="enquiries" element={lister(<EnquiryList />)} />
-            <Route path="enquiries/:id" element={<RequireRole roles={["LANDLORD", "AGENT", "ADMIN"]}><EnquiryDetail /></RequireRole>} />
-            <Route path="admin" element={<RequireRole roles={["ADMIN"]}><AdminLayout /></RequireRole>}>
-              <Route index element={<PeopleChecks />} />
-              <Route path="properties" element={<PropertyChecks />} />
-              <Route path="listings" element={<AdminListings />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="interests" element={<AdminInterests />} />
-              <Route path="audit" element={<AdminAudit />} />
+        <ToastProvider>
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route element={<GuestLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
             </Route>
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<Home />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="listings" element={<Listings />} />
+              <Route path="listings/saved" element={<Listings savedOnly key="saved" />} />
+              <Route path="listings/:id" element={<ListingDetail />} />
+              <Route path="interests" element={renter(<InterestList />)} />
+              <Route path="interests/:id" element={renter(<InterestDetail />)} />
+              <Route path="properties" element={lister(<PropertyList />)} />
+              <Route path="properties/new" element={lister(<NewProperty />)} />
+              <Route path="properties/:id" element={lister(<PropertyDetail />)} />
+              <Route path="properties/:id/edit" element={lister(<EditProperty />)} />
+              <Route path="enquiries" element={lister(<EnquiryList />)} />
+              <Route path="enquiries/:id" element={<RequireRole roles={["LANDLORD", "AGENT", "ADMIN"]}><EnquiryDetail /></RequireRole>} />
+              <Route path="admin" element={<RequireRole roles={["ADMIN"]}><AdminLayout /></RequireRole>}>
+                <Route index element={<PeopleChecks />} />
+                <Route path="properties" element={<PropertyChecks />} />
+                <Route path="listings" element={<AdminListings />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="interests" element={<AdminInterests />} />
+                <Route path="audit" element={<AdminAudit />} />
+              </Route>
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

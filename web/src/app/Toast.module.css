@@ -1,0 +1,110 @@
+/* Toasts sit in the bottom-right corner, where a drawing keeps its revision notes.
+   Flat and square like everything else: a heavy pen border, and a film-coloured gap
+   around each note (the sheet frame's gap) instead of a shadow. */
+.stack {
+  position: fixed;
+  z-index: 50;
+  right: var(--gutter);
+  bottom: var(--space-3);
+  display: grid;
+  gap: 0.9rem;
+  width: min(25rem, calc(100vw - 2 * var(--gutter)));
+  /* Clicks pass through the empty stack to the page beneath. */
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.7rem;
+  padding: 0.75rem 0.5rem 0.75rem 0.9rem;
+  border: var(--pen-heavy) solid var(--navy);
+  outline: 6px solid var(--film);
+  background: #fff;
+  color: var(--navy);
+  animation: arrive 0.25s var(--ease-out) both;
+}
+
+.toast[data-kind="error"] {
+  border-color: var(--error);
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+/* The same survey beacon as the Status component. Green only for something done or approved. */
+.beacon {
+  width: 12px;
+  height: 12px;
+  margin-top: 0.3rem;
+  border: var(--pen-heavy) solid var(--navy);
+  border-radius: 50%;
+  background: var(--film);
+}
+
+.toast[data-kind="success"] .beacon {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.toast[data-kind="error"] .beacon {
+  border-color: var(--error);
+  background: var(--error);
+}
+
+.body {
+  display: grid;
+  gap: 0.15rem;
+  padding-top: 0.05rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.reference {
+  font-weight: 600;
+  color: var(--navy-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: -0.35rem 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy-soft);
+  cursor: pointer;
+}
+
+.close:hover {
+  color: var(--navy);
+}
+
+.close:focus-visible {
+  outline-offset: -2px;
+}
+
+/* On phones the notes span the screen and the dismiss button grows to a full touch target. */
+@media (max-width: 560px) {
+  .stack {
+    bottom: var(--space-2);
+  }
+
+  .close {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.6rem -0.2rem -0.6rem 0;
+  }
+}

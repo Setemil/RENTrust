@@ -54,23 +54,26 @@ model User {
   emailVerified Boolean    @default(false) @map("email_verified")
   phoneVerified Boolean    @default(false) @map("phone_verified")
   mfaEnabled    Boolean    @default(false) @map("mfa_enabled")
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // Soft delete. Evidence records point at users, so accounts are anonymised, never removed.
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(3)
 
   roles    UserRole[]
   consents Consent[]
 
-  otpCodes          OtpCode[]
-  verifications     Verification[]     @relation("VerificationSubmitter")
-  reviews           Verification[]     @relation("VerificationReviewer")
-  properties        Property[]
-  savedListings     SavedListing[]
-  termsAcceptances  TermsAcceptance[]
-  interests         Interest[]         @relation("InterestSeeker")
-  decisions         Interest[]         @relation("InterestDecider")
-  reportAccesses    ReportAccessLog[]
-  notifications     Notification[]
-  auditLogs         AuditLog[]
+  otpCodes         OtpCode[]
+  verifications    Verification[]         @relation("VerificationSubmitter")
+  reviews          Verification[]         @relation("VerificationReviewer")
+  properties       Property[]
+  savedListings    SavedListing[]
+  termsAcceptances TermsAcceptance[]
+  interests        Interest[]             @relation("InterestSeeker")
+  decisions        Interest[]             @relation("InterestDecider")
+  interestChanges  InterestStatusChange[]
+  reportAccesses   ReportAccessLog[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
 
   @@map("users")
 }
@@ -100,10 +103,10 @@ model Consent {
   userId     String      @map("user_id") @db.Uuid
   kind       ConsentKind
   docVersion String      @map("doc_version")
-  acceptedAt DateTime    @default(now()) @map("accepted_at")
+  acceptedAt DateTime    @default(now()) @map("accepted_at") @db.Timestamptz(3)
   ip         String?     @db.Inet
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId])
   @@map("consents")
@@ -121,10 +124,10 @@ model OtpCode {
   userId     String     @map("user_id") @db.Uuid
   channel    OtpChannel
   codeHash   String     @map("code_hash")
-  expiresAt  DateTime   @map("expires_at")
-  consumedAt DateTime?  @map("consumed_at")
+  expiresAt  DateTime   @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime?  @map("consumed_at") @db.Timestamptz(3)
   attempts   Int        @default(0)
-  createdAt  DateTime   @default(now()) @map("created_at")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -138,10 +141,10 @@ enum VerificationSubject {
 }
 
 enum VerificationKind {
-  IDENTITY  // individual KYC
-  BUSINESS  // organisation KYB
+  IDENTITY // individual KYC
+  BUSINESS // organisation KYB
   OWNERSHIP // landlord owns the property
-  MANDATE   // agent is authorised to let the property
+  MANDATE // agent is authorised to let the property
 }
 
 enum VerificationStatus {
@@ -162,11 +165,11 @@ model Verification {
   data          Json                @default("{}")
   submittedById String              @map("submitted_by") @db.Uuid
   reviewedById  String?             @map("reviewed_by") @db.Uuid
-  reviewedAt    DateTime?           @map("reviewed_at")
+  reviewedAt    DateTime?           @map("reviewed_at") @db.Timestamptz(3)
   reviewNote    String?             @map("review_note")
-  createdAt     DateTime            @default(now()) @map("created_at")
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  submittedBy User  @relation("VerificationSubmitter", fields: [submittedById], references: [id], onDelete: Cascade)
+  submittedBy User  @relation("VerificationSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
   reviewedBy  User? @relation("VerificationReviewer", fields: [reviewedById], references: [id])
 
   @@index([subjectType, subjectId])
@@ -210,10 +213,11 @@ model Property {
   amenities          Json         @default("[]")
   description        String       @default("")
   verificationStatus KycStatus    @default(NOT_STARTED) @map("verification_status")
-  createdAt          DateTime     @default(now()) @map("created_at")
-  updatedAt          DateTime     @updatedAt @map("updated_at")
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt          DateTime?    @map("deleted_at") @db.Timestamptz(3)
 
-  lister  User     @relation(fields: [listerId], references: [id], onDelete: Cascade)
+  lister  User     @relation(fields: [listerId], references: [id], onDelete: Restrict)
   listing Listing?
 
   @@index([listerId])
@@ -250,11 +254,12 @@ model Listing {
   availableFrom DateTime?     @map("available_from") @db.Date
   status        ListingStatus @default(DRAFT)
   reviewNote    String?       @map("review_note")
-  publishedAt   DateTime?     @map("published_at")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  publishedAt   DateTime?     @map("published_at") @db.Timestamptz(3)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt     DateTime?     @map("deleted_at") @db.Timestamptz(3)
 
-  property  Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property  Property        @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   terms     LandlordTerms[]
   saves     SavedListing[]
   interests Interest[]
@@ -269,9 +274,9 @@ model LandlordTerms {
   listingId   String   @map("listing_id") @db.Uuid
   version     Int
   content     Json
-  effectiveAt DateTime @default(now()) @map("effective_at")
+  effectiveAt DateTime @default(now()) @map("effective_at") @db.Timestamptz(3)
 
-  listing     Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing     Listing           @relation(fields: [listingId], references: [id], onDelete: Restrict)
   acceptances TermsAcceptance[]
   interests   Interest[]
 
@@ -283,11 +288,11 @@ model TermsAcceptance {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
   termsId    String   @map("terms_id") @db.Uuid
-  acceptedAt DateTime @default(now()) @map("accepted_at")
-  ip         String?
+  acceptedAt DateTime @default(now()) @map("accepted_at") @db.Timestamptz(3)
+  ip         String?  @db.Inet
 
-  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  terms LandlordTerms @relation(fields: [termsId], references: [id], onDelete: Cascade)
+  user  User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  terms LandlordTerms @relation(fields: [termsId], references: [id], onDelete: Restrict)
 
   @@unique([userId, termsId])
   @@map("terms_acceptances")
@@ -296,7 +301,7 @@ model TermsAcceptance {
 model SavedListing {
   userId    String   @map("user_id") @db.Uuid
   listingId String   @map("listing_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -324,25 +329,46 @@ model Interest {
   seekerId        String         @map("seeker_id") @db.Uuid
   listingId       String         @map("listing_id") @db.Uuid
   termsId         String         @map("terms_id") @db.Uuid
-  termsAcceptedAt DateTime       @map("terms_accepted_at")
+  termsAcceptedAt DateTime       @map("terms_accepted_at") @db.Timestamptz(3)
   status          InterestStatus @default(INITIATED)
   message         String?
   // Internal only. Never shown to the renter.
   decisionReason  String?        @map("decision_reason")
   decidedById     String?        @map("decided_by") @db.Uuid
-  decidedAt       DateTime?      @map("decided_at")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
+  decidedAt       DateTime?      @map("decided_at") @db.Timestamptz(3)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  seeker    User             @relation("InterestSeeker", fields: [seekerId], references: [id], onDelete: Cascade)
-  decidedBy User?            @relation("InterestDecider", fields: [decidedById], references: [id])
-  listing   Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  terms     LandlordTerms    @relation(fields: [termsId], references: [id])
-  report    CharacterReport?
+  seeker        User                   @relation("InterestSeeker", fields: [seekerId], references: [id], onDelete: Restrict)
+  decidedBy     User?                  @relation("InterestDecider", fields: [decidedById], references: [id])
+  listing       Listing                @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  terms         LandlordTerms          @relation(fields: [termsId], references: [id])
+  report        CharacterReport?
+  statusHistory InterestStatusChange[]
 
   @@index([seekerId])
   @@index([listingId])
   @@map("interests")
+}
+
+// Append-only record of every interest status change: who, when and why.
+model InterestStatusChange {
+  id         String          @id @default(uuid()) @db.Uuid
+  // Several changes can share a timestamp (one transaction), so seq gives the true order.
+  seq        BigInt          @unique @default(autoincrement())
+  interestId String          @map("interest_id") @db.Uuid
+  fromStatus InterestStatus? @map("from_status")
+  toStatus   InterestStatus  @map("to_status")
+  // Null when the system made the change (for example, the report provider).
+  actorId    String?         @map("actor_id") @db.Uuid
+  reason     String?
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  interest Interest @relation(fields: [interestId], references: [id], onDelete: Restrict)
+  actor    User?    @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([interestId, createdAt])
+  @@map("interest_status_history")
 }
 
 enum ReportStatus {
@@ -363,9 +389,9 @@ model CharacterReport {
   payload            Json?
   status             ReportStatus @default(REQUESTED)
   retainUntil        DateTime?    @map("retain_until") @db.Date
-  createdAt          DateTime     @default(now()) @map("created_at")
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  interest Interest          @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  interest Interest          @relation(fields: [interestId], references: [id], onDelete: Restrict)
   accesses ReportAccessLog[]
 
   @@map("character_reports")
@@ -375,11 +401,11 @@ model ReportAccessLog {
   id           String   @id @default(uuid()) @db.Uuid
   reportId     String   @map("report_id") @db.Uuid
   accessedById String   @map("accessed_by") @db.Uuid
-  accessedAt   DateTime @default(now()) @map("accessed_at")
-  ip           String?
+  accessedAt   DateTime @default(now()) @map("accessed_at") @db.Timestamptz(3)
+  ip           String?  @db.Inet
 
-  report     CharacterReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  accessedBy User            @relation(fields: [accessedById], references: [id], onDelete: Cascade)
+  report     CharacterReport @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  accessedBy User            @relation(fields: [accessedById], references: [id], onDelete: Restrict)
 
   @@index([reportId])
   @@map("report_access_logs")
@@ -410,8 +436,8 @@ model Notification {
   relatedType String?             @map("related_type")
   relatedId   String?             @map("related_id") @db.Uuid
   status      NotificationStatus  @default(SENT)
-  readAt      DateTime?           @map("read_at")
-  createdAt   DateTime            @default(now()) @map("created_at")
+  readAt      DateTime?           @map("read_at") @db.Timestamptz(3)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -419,18 +445,27 @@ model Notification {
   @@map("notifications")
 }
 
+// Append-only and hash-chained. The database refuses UPDATE, DELETE and TRUNCATE, and a
+// BEFORE INSERT trigger assigns seq and fills prev_hash/hash (see the records_hardening
+// migration). Check the chain with `npm run audit:verify`.
 model AuditLog {
   id         String   @id @default(uuid()) @db.Uuid
+  // Position in the chain. Set by the trigger, so it follows commit order.
+  seq        BigInt   @unique @default(autoincrement())
   actorId    String?  @map("actor_id") @db.Uuid
   action     String
   entityType String   @map("entity_type")
   entityId   String   @map("entity_id")
   before     Json?
   after      Json?
-  ip         String?
-  createdAt  DateTime @default(now()) @map("created_at")
+  ip         String?  @db.Inet
+  requestId  String?  @map("request_id")
+  userAgent  String?  @map("user_agent")
+  prevHash   String?  @map("prev_hash")
+  hash       String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([entityType, entityId])
   @@index([createdAt])

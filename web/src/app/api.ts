@@ -1,3 +1,5 @@
+import type { Toast } from "./toast";
+
 // In dev, Vite proxies /api to the server on :5050 (see vite.config.ts).
 // For a deployed build, set VITE_API_URL to the API's full /api/v1 URL.
 const BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
@@ -37,10 +39,18 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    // Machine-readable code from the server, e.g. "INVALID_CREDENTIALS" or "STALE_STATE".
+    public code: string | null = null,
+    // Quote this to support; it matches the server's logs and audit rows.
+    public requestId: string | null = null,
+    // Set when the server wants this error shown as a toast rather than beside a form.
+    public toast: Toast | null = null,
   ) {
     super(message);
   }
 }
+
+type ErrorBody = { error?: { code?: string; message?: string; requestId?: string | null }; toast?: Toast };
 
 export async function api<T>(
   path: string,
@@ -63,9 +73,12 @@ export async function api<T>(
 
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    // The Vite proxy answers with an empty 5xx when the server is down.
-    const message = data?.message ?? (res.status >= 500 ? UNREACHABLE : `Request failed (${res.status})`);
-    throw new ApiError(res.status, message);
+    // Server errors arrive as { error: { code, message, requestId } }. The Vite proxy answers
+    // with an empty 5xx when the server is down.
+    const body = data as ErrorBody | null;
+    const err = body?.error;
+    const message = err?.message ?? (res.status >= 500 ? UNREACHABLE : `Request failed (${res.status})`);
+    throw new ApiError(res.status, message, err?.code ?? null, err?.requestId ?? res.headers.get("X-Request-Id"), body?.toast ?? null);
   }
   return data as T;
 }

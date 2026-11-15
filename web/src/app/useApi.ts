@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "./api";
 import { useAuth } from "./auth";
+import { useToast, type Toast } from "./toast";
 
 // GET a resource with the session token. reload() refetches without clearing what's on screen.
 export function useApi<T>(path: string | null) {
@@ -36,8 +37,11 @@ export function useApi<T>(path: string | null) {
 }
 
 // For POST/PATCH/PUT/DELETE: tracks pending + error, returns the result or null on failure.
+// Any toast the server sends with the response is shown. An error that arrives as a toast is
+// not repeated in `error`, so `error` only ever holds what belongs beside the form.
 export function useAction() {
   const { token } = useAuth();
+  const toast = useToast();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,15 +50,19 @@ export function useAction() {
       setPending(true);
       setError("");
       try {
-        return await api<T>(path, { method, body, token });
+        const result = await api<T>(path, { method, body, token });
+        const sent = (result as { toast?: Toast } | null)?.toast;
+        if (sent) toast(sent);
+        return result;
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+        if (err instanceof ApiError && err.toast) toast(err.toast);
+        else setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
         return null;
       } finally {
         setPending(false);
       }
     },
-    [token],
+    [token, toast],
   );
 
   return { run, pending, error, setError };

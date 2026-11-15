@@ -1,6 +1,6 @@
-import { prisma } from "../config/db";
+import { prisma } from "../shared/db";
 import { RoleName, type Prisma } from "../generated/prisma/client";
-import { hashPassword } from "../models/user";
+import { hashPassword } from "../features/auth/users";
 
 // Test data. Every account uses the same password: SEED_PASSWORD if set (always set it for a
 // hosted environment, since the default is published in the README), otherwise "rentrust-test".

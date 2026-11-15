@@ -78,12 +78,15 @@ Express 5 with Prisma 7 on PostgreSQL, JWT auth. The MVP covers the trust loop u
 
 ```
 server/
-├── controllers/   auth, account (OTP, consents, KYC/KYB), property, marketplace, interest, notification, admin
-├── routers/       authRouter (public) and appRouter (everything behind requireAuth + role checks)
-├── services/      characterReport.ts: the simulated report provider (swap for a real one here)
-├── lib/           audit log writer, notifications, input checks
-└── prisma/        schema, migrations and seed (test accounts and listings)
+├── index.ts, app.ts, routes.ts   Start-up, the Express app, and one line per feature
+├── features/      One folder per feature, each with routes.ts and handlers.ts:
+│                  auth, account, properties, marketplace, interests, notifications, admin
+├── shared/        Small tools every feature uses: db, errors, input checks, auth guards, audit, notify
+├── prisma/        schema, migrations and seed (test accounts and listings)
+└── scripts/       smoke test and audit-chain check
 ```
+
+New to the server? Read [`server/README.md`](server/README.md). It explains how a request flows, how to add a feature, and the rules the code follows. Run `npm run smoke` after any change: it exercises every feature against a throwaway database.
 
 | Area | Routes (all under `/api/v1`, all need a signed-in account) |
 | --- | --- |
@@ -98,7 +101,7 @@ What is simulated until providers are chosen (the UI labels each one "Test mode"
 
 - **Email and SMS codes:** outside production the code is returned to the page and logged by the server.
 - **KYC / KYB and property documents:** go to the admin review queue. Only a masked ID number and a document reference are stored; there is no file upload yet.
-- **Character report:** `services/characterReport.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
+- **Character report:** `features/interests/reportProvider.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
 - **Email and SMS notifications:** stored as `SIMULATED` rows next to the in-app notification. Report content never goes in them.
 
 ## Getting started
@@ -151,9 +154,16 @@ A full loop: sign in as the renter and show interest in a Bola Adeyemi listing. 
 | `CLIENT_URL` | Allowed CORS origin | `http://localhost:5173` |
 | `REPORT_DELAY_MS` | Delay before the simulated character report is ready | `4000` |
 
+### Records and errors
+
+- The audit log, report access log and interest status history are append-only: the database refuses updates, deletes and truncation. Audit rows are hash-chained; run `npm run audit:verify` to check nothing was altered.
+- Users, properties and listings are soft-deleted (`deleted_at`), and records that serve as evidence can't be cascade-deleted.
+- Every API error is `{ "error": { "code", "message", "requestId" } }`, and every response carries an `X-Request-Id` header that also appears on the audit rows the request wrote.
+- Change an interest's status only through `transitionInterest` in `server/features/interests/status.ts`, and a listing's through `setListingStatus` in `server/features/properties/listing.ts`. They write the history and audit rows, and `transitionInterest` also guards against races.
+
 ## MVP build order
 
-From the specification, section 30:
+The working plan to the first public test, including payments and rent management, is in [`ROADMAP.md`](ROADMAP.md). The original order from the specification, section 30:
 
 1. Authentication and account-gated marketplace
 2. Individual KYC/KYB and landlord/agent verification

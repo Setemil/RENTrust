@@ -1,43 +1,7 @@
-import cors from "cors";
-import express, { type NextFunction, type Request, type Response } from "express";
-import { prisma } from "./config/db";
-import { env } from "./config/env";
-import { Prisma } from "./generated/prisma/client";
-import { HttpError } from "./lib/http";
-import appRouter from "./routers/appRouter";
-import authRouter from "./routers/authRouter";
-import { resumePendingReports } from "./services/characterReport";
-
-const app = express();
-
-app.use(cors({ origin: env.clientUrl, credentials: true }));
-app.use(express.json());
-
-app.get("/api/v1/health", (_req, res) => {
-  res.json({ status: "ok" });
-});
-
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1", appRouter);
-
-app.use((_req, res) => {
-  res.status(404).json({ message: "Not found" });
-});
-
-// Express 5 forwards rejected promises from async handlers here.
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  if (err instanceof HttpError) {
-    return res.status(err.status).json({ message: err.message });
-  }
-  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-    return res.status(409).json({ message: "A record with that value already exists" });
-  }
-  if (err instanceof SyntaxError && "body" in err) {
-    return res.status(400).json({ message: "Malformed JSON body" });
-  }
-  console.error(err);
-  res.status(500).json({ message: "Internal server error" });
-});
+import { app } from "./app";
+import { resumePendingReports } from "./features/interests/reportProvider";
+import { prisma } from "./shared/db";
+import { env } from "./shared/env";
 
 async function start() {
   await prisma.$connect();

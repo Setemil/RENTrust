@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd web && npm run dev"],
+      "port": 5173
+    },
+    {
+      "name": "web-preview-db",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd web && VITE_API_URL=http://localhost:5097/api/v1 npx vite --port 5174 --strictPort"],
+      "port": 5174
+    }
+  ]
+}
