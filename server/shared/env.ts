@@ -39,5 +39,7 @@ export const env = {
   reportDelayMs: Number(process.env.REPORT_DELAY_MS ?? 4000),
 };
 
-export const emailConnected = Boolean(env.resendApiKey && env.emailFrom);
+// The email settings this server is missing, named in the log so the fix is obvious.
+export const emailMissing = [!env.resendApiKey && "RESEND_API_KEY", !env.emailFrom && "EMAIL_FROM"].filter((name): name is string => Boolean(name));
+export const emailConnected = emailMissing.length === 0;
 export const photosConnected = Boolean(env.cloudinary.cloudName && env.cloudinary.apiKey && env.cloudinary.apiSecret);

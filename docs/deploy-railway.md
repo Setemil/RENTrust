@@ -93,7 +93,7 @@ Open the web address, sign in as `renter@rentrust.test` with your `SEED_PASSWORD
 | The browser console shows a CORS error | The server's `CLIENT_URL` doesn't exactly match the web address, including the `https://` at the start |
 | The server crashes saying a table "does not exist" | Migrations didn't run. Check the start command is `npm start` (not `node dist/index.js`); the log should say "All migrations have been successfully applied". |
 | The server crashes right after "prisma migrate deploy" | A migration failed. Read the deploy logs; the database is left as it was. |
-| An email never arrives | Open the server's logs and search `email`. `email is off` at startup names the missing variable. `email not sent` has Resend's reason. `email sent` means Resend took it: look up its `resendId` in Resend's Emails page. |
+| An email never arrives | Open the server's logs and search `email`. `Email is OFF` at startup (and `Email code NOT sent` when someone asks for a code) names the missing variable. `email not sent` has Resend's reason. `email sent` means Resend took it: look up its `resendId` in Resend's Emails page. |
 | Sign-up says "We couldn't send the email" | Resend refused it. The log line `email not sent` has Resend's reason. Usually `EMAIL_FROM` isn't on a verified domain, or the domain isn't verified yet so Resend only delivers to your own address. |
 | You want only the problems | The server logs one JSON line per event. In Railway's log view, filter with `@level:error` or `@level:warn`. |
 | Photos say uploads "aren't switched on" | One of the three `CLOUDINARY_*` variables is missing on the server |

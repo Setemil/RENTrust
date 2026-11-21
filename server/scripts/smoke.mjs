@@ -133,7 +133,7 @@ const h=await fetch(B+'/health'); ok('security headers',h.headers.get('x-content
 // the server log (smoke.sh saves it to SERVER_LOG)
 if(process.env.SERVER_LOG){
   const logText=readFileSync(process.env.SERVER_LOG,'utf8');
-  ok('log: startup says email is off and why',/WARN  email is off.*missing=\["RESEND_API_KEY","EMAIL_FROM"\]/.test(logText),logText.slice(0,600));
+  ok('log: startup says email is off and why',/WARN  Email is OFF: add RESEND_API_KEY and EMAIL_FROM.*missing=\["RESEND_API_KEY","EMAIL_FROM"\]/.test(logText),logText.slice(0,600));
   ok('log: each request with id, time and user',/INFO  GET \/api\/v1\/listings 200 \[[0-9a-f]{8}\] ms=\d+ userId=[0-9a-f-]{36}/.test(logText));
   ok('log: refused requests are warnings',/WARN  POST \/api\/v1\/auth\/login 401/.test(logText));
   ok('log: health checks are skipped',!logText.includes('/api/v1/health'));

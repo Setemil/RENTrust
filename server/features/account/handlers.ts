@@ -2,9 +2,9 @@ import { createHash, randomInt } from "node:crypto";
 import type { Request, Response } from "express";
 import { audit } from "../../shared/audit";
 import { prisma } from "../../shared/db";
-import { emailConnected, env } from "../../shared/env";
+import { emailConnected, emailMissing, env } from "../../shared/env";
 import { sendEmail } from "../../shared/email";
-import { badRequest, conflict } from "../../shared/errors";
+import { HttpError, badRequest, conflict } from "../../shared/errors";
 import { clientIp, oneOf, str } from "../../shared/input";
 import { log } from "../../shared/log";
 import { notify } from "../../shared/notify";
@@ -47,11 +47,22 @@ export async function status(req: Request, res: Response) {
   });
 }
 
+// No way to deliver the code and no test mode to show it: say so rather than pretend it went.
+function cannotSend(channel: "EMAIL" | "PHONE", userId: string): never {
+  if (channel === "EMAIL") {
+    log.warn(`Email code NOT sent: email is off. Add ${emailMissing.join(" and ")} to this server's variables, then redeploy`, { userId, missing: emailMissing });
+    throw new HttpError(503, "We can't send email codes right now. Try again later.", "CODE_NOT_SENT");
+  }
+  log.warn("Phone code NOT sent: no text-message provider is connected, and TEST_MODE is off", { userId });
+  throw new HttpError(503, "We can't send text messages yet. Try again later.", "CODE_NOT_SENT");
+}
+
 export async function sendOtp(req: Request, res: Response) {
   const user = req.user!;
   const channel = oneOf(req.body?.channel, "channel", ["EMAIL", "PHONE"] as const);
   const alreadyDone = channel === "EMAIL" ? user.emailVerified : user.phoneVerified;
   if (alreadyDone) throw conflict("Already confirmed");
+  if (!canSend(channel) && !env.testMode) cannotSend(channel, user.id);
 
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   // Only the newest code works: retire any earlier ones.
@@ -71,7 +82,6 @@ export async function sendOtp(req: Request, res: Response) {
   }
   const showCode = !canSend(channel) && env.testMode;
   if (showCode) log.info("test code shown on screen", { channel, email: user.email, code });
-  else if (!canSend(channel)) log.warn("code not sent: nothing connected to deliver it", { channel, userId: user.id });
   res.json({
     sentTo: channel === "EMAIL" ? user.email : user.phone,
     expiresInMinutes: OTP_MINUTES,
