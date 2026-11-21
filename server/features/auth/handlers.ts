@@ -13,9 +13,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 8;
 const RESET_MINUTES = 30;
 // No email gateway yet (ROADMAP Phase 2). Until there is one, the reset link is returned to the
-// page outside production, the same way email and phone codes are. In production nothing is
-// sent yet, and the link is never logged there, because a logged link is a working password.
-const SHOW_RESET_LINKS = !env.isProduction;
+// page in test mode, the same way email and phone codes are (see env.ts). Outside test mode
+// nothing is sent yet, and the link is never logged, because a logged link is a working password.
+const SHOW_RESET_LINKS = env.testMode;
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 const usable = (user: { deletedAt: Date | null; status: string } | null) => user && !user.deletedAt && user.status === "ACTIVE";

@@ -14,8 +14,8 @@ import { CONSENT_DOC_VERSION } from "./consent";
 
 const OTP_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
-// No SMS/email gateway yet, so outside production the code is returned to the page.
-const SHOW_CODES = !env.isProduction;
+// No SMS/email gateway yet, so in test mode the code is returned to the page (see env.ts).
+const SHOW_CODES = env.testMode;
 const ID_TYPES = ["NIN", "PASSPORT", "DRIVERS_LICENCE", "VOTERS_CARD"] as const;
 
 const hashCode = (code: string) => createHash("sha256").update(code).digest("hex");

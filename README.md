@@ -100,7 +100,7 @@ New to the server? Read [`server/README.md`](server/README.md). It explains how 
 
 What is simulated until providers are chosen (the UI labels each one "Test mode"):
 
-- **Email and SMS codes, and password-reset links:** outside production they are returned to the page and logged by the server. In production nothing is sent until the email and SMS gateways are connected.
+- **Email and SMS codes, and password-reset links:** in test mode they are returned to the page and logged by the server. Test mode is on locally; on a host, set `TEST_MODE=true`. Outside test mode nothing is sent until the email and SMS gateways are connected.
 - **KYC / KYB and property documents:** go to the admin review queue. Only a masked ID number and a document reference are stored; there is no file upload yet.
 - **Character report:** `features/interests/reportProvider.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
 - **Email and SMS notifications:** stored as `SIMULATED` rows next to the in-app notification. Report content never goes in them.

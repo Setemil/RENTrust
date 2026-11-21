@@ -29,8 +29,7 @@ There is no `railway.json` in the repo. Railway has deprecated those files and n
    | `SEED_PASSWORD` | A private password for the seeded test accounts. The default is published in the README. |
    | `PORT` | `8080` |
    | `CLIENT_URL` | Fill in after step 3, with the web service's address |
-
-   Leave `NODE_ENV` unset while testers need the on-screen codes and reset links, because email isn't connected yet. Set it to `production` once it is.
+   | `TEST_MODE` | `true` while email and SMS aren't connected. Railway sets `NODE_ENV=production` for you, which otherwise hides the on-screen codes and reset links, and nobody could confirm their email. Remove it once email and SMS work, and before real people sign up. |
 4. **Settings → Networking → Generate Domain**, with port **8080**. Note the address, such as `https://server-production-1234.up.railway.app`.
 5. Check it: opening that address plus `/api/v1/health` should show `{"status":"ok"}`.
 
@@ -43,7 +42,7 @@ There is no `railway.json` in the repo. Railway has deprecated those files and n
    - **Watch Paths:** `/web/**`
 3. In **Variables**, add `PORT` = `8080`, and `VITE_API_URL` set to the server's address plus `/api/v1`, for example `https://server-production-1234.up.railway.app/api/v1`. It is baked in when the app is built, so redeploy the web service after changing it.
 4. **Settings → Networking → Generate Domain**, with port **8080**.
-5. Go back to the **server's** variables and set `CLIENT_URL` to the web address, with no slash at the end. Without it, the browser refuses the app's calls to the API.
+5. Go back to the **server's** variables and set `CLIENT_URL` to the web address, starting with `https://` and with no slash at the end, for example `https://web-production-1234.up.railway.app`. Without it, the browser refuses the app's calls to the API.
 
 ## 4. Add the test accounts (once)
 
@@ -78,7 +77,7 @@ Open the web address, sign in as `renter@rentrust.test` with your `SEED_PASSWORD
 | Symptom | Likely cause |
 | --- | --- |
 | The web app says it can't reach the server | `VITE_API_URL` is wrong, or the web app wasn't redeployed after setting it |
-| The browser console shows a CORS error | The server's `CLIENT_URL` doesn't exactly match the web address |
+| The browser console shows a CORS error | The server's `CLIENT_URL` doesn't exactly match the web address, including the `https://` at the start |
 | The server crashes saying a table "does not exist" | Migrations didn't run. Check the start command is `npm start` (not `node dist/index.js`); the log should say "All migrations have been successfully applied". |
 | The server crashes right after "prisma migrate deploy" | A migration failed. Read the deploy logs; the database is left as it was. |
 | "Application failed to respond" while the logs look fine | The domain's port isn't the one the app listens on. Set `PORT=8080` and the domain's port to 8080. |
