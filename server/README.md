@@ -85,6 +85,7 @@ On the web side, `useAction` in `web/src/app/useApi.ts` shows any toast that arr
 | `shared/rateLimit.ts` | `limit({ minutes, max, by })`: cap how often a visitor can call a route. Put one on any route that sends a message, checks a secret or works without signing in. |
 | `shared/format.ts` | `listingRef`, `personName` |
 | `shared/env.ts` | Every environment setting. Don't read `process.env` anywhere else. |
+| `shared/log.ts` | `log.info / log.warn / log.error("what happened", { details })`: the server's only logger. Never use `console.log`. Every request is also logged once when it finishes. |
 | `shared/context.ts` | The current request's ID, IP and user agent (used by `audit`) |
 
 ## Adding a feature
@@ -113,6 +114,7 @@ Adding a URL to an existing feature is steps 4 and 5, plus one line in that feat
 - **One job per function,** and a handler that fits on one screen. When a handler grows, pull a named helper out of it (see `businessDetails` and `identityDetails` in `account/handlers.ts`).
 - **Share only what is used twice.** Don't write a helper for one caller.
 - **Features may use each other's helper files, never each other's handlers.** `marketplace` may import from `interests/status.ts`, not from `interests/handlers.ts`.
+- **Log with `log`, never `console`.** `info` for something worth knowing, `warn` when something went wrong but the server coped, `error` when someone should look. Pass a caught error as `err`. Never log passwords, tokens, codes or report content.
 - **Comments say why,** or what a rule is. Each file opens with a line or two on what it's for.
 - **Names say what a thing is** in the product's words: property, listing, terms, interest, check.
 

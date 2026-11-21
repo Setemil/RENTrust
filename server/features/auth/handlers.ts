@@ -7,6 +7,7 @@ import { sendEmail } from "../../shared/email";
 import { emailConnected, env } from "../../shared/env";
 import { badRequest, conflict, forbidden, unauthorized } from "../../shared/errors";
 import { clientIp, oneOf, str } from "../../shared/input";
+import { log } from "../../shared/log";
 import { toast } from "../../shared/toast";
 import { SELF_ASSIGNABLE_ROLES, createUser, findUserByEmail, findUserById, hashPassword, toPublicUser, verifyPassword } from "./users";
 
@@ -111,7 +112,7 @@ export async function forgotPassword(req: Request, res: Response) {
     if (emailConnected) await emailResetLink(email, link);
     if (SHOW_RESET_LINKS) {
       testLink = link;
-      console.log(`[reset] link for ${email}: ${link}`);
+      log.info("test reset link shown on screen", { email, link });
     }
   }
 
@@ -133,7 +134,7 @@ async function emailResetLink(to: string, link: string) {
       "If it wasn't you, ignore this email and your password stays the same.",
     ],
     button: { label: "Set a new password", url: link },
-  }).catch(() => {});
+  }).catch(() => {}); // sendEmail has already logged why
 }
 
 // Step 2: set the new password with the link's token. This signs out every other session.

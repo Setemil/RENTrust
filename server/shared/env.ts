@@ -32,6 +32,9 @@ export const env = {
     apiKey: process.env.CLOUDINARY_API_KEY || "",
     apiSecret: process.env.CLOUDINARY_API_SECRET || "",
   },
+  // Log lines as JSON (one object per line) for the host's log viewer, or as readable text
+  // locally. Hosts such as Railway set NODE_ENV=production. LOG_FORMAT=json|text overrides it.
+  jsonLogs: process.env.LOG_FORMAT ? process.env.LOG_FORMAT === "json" : process.env.NODE_ENV === "production",
   // How long the simulated character-report provider takes.
   reportDelayMs: Number(process.env.REPORT_DELAY_MS ?? 4000),
 };

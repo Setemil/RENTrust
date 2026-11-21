@@ -18,10 +18,13 @@ psql "$BASE" -qc "DROP DATABASE IF EXISTS $SMOKE_DB" -c "CREATE DATABASE $SMOKE_
 npx prisma migrate deploy >/dev/null
 npx prisma db seed >/dev/null
 
-npx tsx index.ts >/dev/null 2>&1 &
+# The server's log goes to a file, so smoke.mjs can check what it logged.
+export SERVER_LOG="$(mktemp)"
+npx tsx index.ts >"$SERVER_LOG" 2>&1 &
 SERVER=$!
 cleanup() {
   kill $SERVER 2>/dev/null || true
+  rm -f "$SERVER_LOG"
   psql "$BASE" -qc "DROP DATABASE IF EXISTS $SMOKE_DB WITH (FORCE)" 2>/dev/null
 }
 trap cleanup EXIT

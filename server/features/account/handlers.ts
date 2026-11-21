@@ -6,6 +6,7 @@ import { emailConnected, env } from "../../shared/env";
 import { sendEmail } from "../../shared/email";
 import { badRequest, conflict } from "../../shared/errors";
 import { clientIp, oneOf, str } from "../../shared/input";
+import { log } from "../../shared/log";
 import { notify } from "../../shared/notify";
 import type { UserWithRoles } from "../auth/users";
 import { CONSENT_DOC_VERSION } from "./consent";
@@ -69,7 +70,8 @@ export async function sendOtp(req: Request, res: Response) {
     });
   }
   const showCode = !canSend(channel) && env.testMode;
-  if (showCode) console.log(`[otp] ${channel} code for ${user.email}: ${code}`);
+  if (showCode) log.info("test code shown on screen", { channel, email: user.email, code });
+  else if (!canSend(channel)) log.warn("code not sent: nothing connected to deliver it", { channel, userId: user.id });
   res.json({
     sentTo: channel === "EMAIL" ? user.email : user.phone,
     expiresInMinutes: OTP_MINUTES,

@@ -1,5 +1,6 @@
 import { emailConnected, env } from "./env";
 import { HttpError } from "./errors";
+import { log } from "./log";
 
 // Sends one email through Resend, in RENTrust's plain branded layout:
 //
@@ -50,9 +51,13 @@ function text({ heading, lines, code, button }: Email) {
   return [heading, "", ...lines, ...(code ? ["", code] : []), ...(button ? ["", `${button.label}: ${button.url}`] : [])].join("\n");
 }
 
-// The person sees a short "try again"; the server log keeps Resend's own reason.
-function notSent(reason: string): never {
-  console.error(`[email] not sent: ${reason}`);
+// "setemi@gmail.com" -> "se***@gmail.com": enough to recognise in the log, not to harvest.
+const hide = (address: string) => address.replace(/^([^@]{0,2})[^@]*/, "$1***");
+
+// The person sees a short "try again"; the server log keeps Resend's own reason. The log names
+// the email by its heading, never its subject, because a subject can hold a sign-in code.
+function notSent(email: Email, reason: string): never {
+  log.error("email not sent", { to: hide(email.to), about: email.heading, from: env.emailFrom, reason });
   throw new HttpError(502, "We couldn't send the email. Try again in a minute.", "EMAIL_NOT_SENT");
 }
 
@@ -63,6 +68,9 @@ export async function sendEmail(email: Email) {
     headers: { Authorization: `Bearer ${env.resendApiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from: env.emailFrom, to: [email.to], subject: email.subject, html: html(email), text: text(email) }),
     signal: AbortSignal.timeout(10_000),
-  }).catch((err: Error) => notSent(err.message));
-  if (!res.ok) notSent(`Resend ${res.status}: ${(await res.text().catch(() => "")).slice(0, 300)}`);
+  }).catch((err: Error) => notSent(email, err.message));
+  if (!res.ok) notSent(email, `Resend ${res.status}: ${(await res.text().catch(() => "")).slice(0, 300)}`);
+  const { id } = (await res.json().catch(() => ({}))) as { id?: string };
+  // Resend accepted it. If it still doesn't arrive, look up this id in Resend's Emails page.
+  log.info("email sent", { to: hide(email.to), about: email.heading, resendId: id });
 }

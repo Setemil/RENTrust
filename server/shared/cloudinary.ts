@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { env } from "./env";
+import { log } from "./log";
 
 // Listing photos on Cloudinary, without the SDK. The browser uploads straight to Cloudinary using
 // a short-lived signature from us, so photos never pass through this server:
@@ -43,8 +44,8 @@ export async function destroyPhoto(publicId: string) {
     body,
     signal: AbortSignal.timeout(10_000),
   })
-    .then((res) => res.ok || console.error(`[photos] Cloudinary destroy ${publicId}: ${res.status}`))
-    .catch((err) => console.error(`[photos] Cloudinary destroy ${publicId}:`, err.message));
+    .then((res) => res.ok || log.warn("photo not removed from Cloudinary", { publicId, status: res.status }))
+    .catch((err) => log.warn("photo not removed from Cloudinary", { publicId, err }));
 }
 
 // Delivery URLs. f_auto/q_auto let Cloudinary pick the lightest format and quality per browser.

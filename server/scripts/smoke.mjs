@@ -2,6 +2,7 @@
 // interests, notifications and admin. Run it with `npm run smoke` (see smoke.sh), which gives it
 // a fresh throwaway database. When you add a feature, add its checks at the bottom.
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 const B = process.env.SMOKE_URL ?? 'http://localhost:5097/api/v1';
 let fails=0;
 async function call(path,{method='GET',body,token}={}){const r=await fetch(B+path,{method,headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body&&JSON.stringify(body)});return {status:r.status,data:await r.json().catch(()=>null)};}
@@ -129,4 +130,14 @@ r=await call('/auth/login',{method:'POST',body:{email:'limit@example.test',passw
 r=await call('/auth/login',{method:'POST',body:{email:'admin@rentrust.test',password:'rentrust-test'}}); ok('other emails can still sign in',r.status===200,r);
 r=await call('/auth/login',{method:'POST',body:{email:'x@example.test',password:'x'.repeat(200_000)}}); ok('oversized body 413',r.status===413&&r.data.error.code==='BODY_TOO_LARGE',r);
 const h=await fetch(B+'/health'); ok('security headers',h.headers.get('x-content-type-options')==='nosniff'&&!h.headers.get('x-powered-by'),Object.fromEntries(h.headers));
+// the server log (smoke.sh saves it to SERVER_LOG)
+if(process.env.SERVER_LOG){
+  const logText=readFileSync(process.env.SERVER_LOG,'utf8');
+  ok('log: startup says email is off and why',/WARN  email is off.*missing=\["RESEND_API_KEY","EMAIL_FROM"\]/.test(logText),logText.slice(0,600));
+  ok('log: each request with id, time and user',/INFO  GET \/api\/v1\/listings 200 \[[0-9a-f]{8}\] ms=\d+ userId=[0-9a-f-]{36}/.test(logText));
+  ok('log: refused requests are warnings',/WARN  POST \/api\/v1\/auth\/login 401/.test(logText));
+  ok('log: health checks are skipped',!logText.includes('/api/v1/health'));
+  ok('log: character reports are traced',logText.includes('character report ready'));
+  ok('log: no unexpected errors',!/ERROR/.test(logText),logText.split('\n').filter(l=>l.includes('ERROR')).slice(0,5));
+}
 console.log(fails?`\n${fails} FAILED`:'\nALL PASSED'); process.exit(fails?1:0);

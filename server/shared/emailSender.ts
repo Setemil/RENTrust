@@ -1,6 +1,7 @@
 import { prisma } from "./db";
 import { sendEmail } from "./email";
 import { emailConnected, env } from "./env";
+import { log } from "./log";
 
 // Sends queued notification emails in the background. notify() stores an EMAIL notification as
 // QUEUED (it runs inside database transactions, where waiting on an email would be wrong); this
@@ -26,10 +27,13 @@ async function sendOne(row: { id: string; title: string; body: string; link: str
     await prisma.notification.update({ where: { id: row.id }, data: { status: "SENT", sentAt: new Date(), attempts: row.attempts + 1 } });
   } catch (err) {
     const attempts = row.attempts + 1;
+    const gaveUp = attempts >= MAX_ATTEMPTS;
     await prisma.notification.update({
       where: { id: row.id },
-      data: { attempts, status: attempts >= MAX_ATTEMPTS ? "FAILED" : "QUEUED", lastError: String((err as Error).message).slice(0, 500) },
+      data: { attempts, status: gaveUp ? "FAILED" : "QUEUED", lastError: String((err as Error).message).slice(0, 500) },
     });
+    if (gaveUp) log.error("notification email given up", { notificationId: row.id, attempts });
+    else log.warn("notification email will be retried", { notificationId: row.id, attempts });
   }
 }
 
@@ -49,8 +53,8 @@ export function startEmailSender() {
   setInterval(async () => {
     if (running) return; // the last batch is still going
     running = true;
-    await sendQueuedEmails().catch((err) => console.error("[email] sender failed:", err));
+    await sendQueuedEmails().catch((err) => log.error("email sender failed", { err }));
     running = false;
   }, EVERY_MS);
-  console.log("Email sender started");
+  log.info("email sender started", { everySeconds: EVERY_MS / 1000 });
 }

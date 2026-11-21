@@ -1,6 +1,7 @@
 import { prisma } from "../../shared/db";
 import { env } from "../../shared/env";
 import { listingRef, personName } from "../../shared/format";
+import { log } from "../../shared/log";
 import { notify } from "../../shared/notify";
 import { transitionInterest } from "./status";
 
@@ -14,8 +15,9 @@ export async function requestReport(interestId: string) {
   const report = await prisma.characterReport.create({
     data: { interestId, provider: TEST_PROVIDER, status: "REQUESTED" },
   });
+  log.info("character report requested", { reportId: report.id, interestId });
   setTimeout(() => {
-    completeReport(report.id).catch((err) => console.error("Character report job failed:", err));
+    completeReport(report.id).catch((err) => log.error("character report job failed", { reportId: report.id, err }));
   }, env.reportDelayMs);
   return report;
 }
@@ -81,12 +83,13 @@ async function completeReport(reportId: string) {
       channels: ["IN_APP", "EMAIL", "SMS"],
     });
   });
+  log.info("character report ready", { reportId: report.id, interestId: interest.id });
 }
 
 // Picks up reports that were still pending when the server stopped.
 export async function resumePendingReports() {
   const pending = await prisma.characterReport.findMany({ where: { status: "REQUESTED" }, select: { id: true } });
   for (const { id } of pending) {
-    completeReport(id).catch((err) => console.error("Character report job failed:", err));
+    completeReport(id).catch((err) => log.error("character report job failed", { reportId: id, err }));
   }
 }

@@ -6,6 +6,7 @@ import routes from "./routes";
 import { requestContext, withRequestContext } from "./shared/context";
 import { env } from "./shared/env";
 import { HttpError } from "./shared/errors";
+import { log, logRequests } from "./shared/log";
 import { limit } from "./shared/rateLimit";
 import { isToastStatus, toast } from "./shared/toast";
 
@@ -14,6 +15,7 @@ export const app = express();
 
 app.set("trust proxy", env.trustProxy);
 app.use(withRequestContext);
+app.use(logRequests);
 app.use(helmet());
 app.use(cors({ origin: env.clientUrl, credentials: true, exposedHeaders: ["X-Request-Id"] }));
 app.use(express.json({ limit: "100kb" }));
@@ -54,7 +56,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (isBodyTooLarge(err)) {
     return sendError(res, 413, "BODY_TOO_LARGE", "That request is too large");
   }
-  console.error(`[${requestContext()?.requestId ?? "-"}]`, err);
+  log.error("unexpected error", { err });
   sendError(res, 500, "INTERNAL", "Something went wrong on our side. Try again, and quote the reference if you contact support.");
 });
 
