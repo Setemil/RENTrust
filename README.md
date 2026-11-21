@@ -131,6 +131,10 @@ npm run dev            # http://localhost:5050
 
 `npm run db:reset` wipes the database, re-applies migrations and re-seeds. It deletes every account, not just the test ones.
 
+### Deploying
+
+The server, web app and database run on Railway. Follow [`docs/deploy-railway.md`](docs/deploy-railway.md).
+
 ### Testing the MVP
 
 Every seeded account uses the password `rentrust-test`.
