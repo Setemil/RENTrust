@@ -1,6 +1,7 @@
 // End-to-end check of every API feature: sign-up, checks, properties, moderation, marketplace,
 // interests, notifications and admin. Run it with `npm run smoke` (see smoke.sh), which gives it
 // a fresh throwaway database. When you add a feature, add its checks at the bottom.
+import { createHash } from 'node:crypto';
 const B = process.env.SMOKE_URL ?? 'http://localhost:5097/api/v1';
 let fails=0;
 async function call(path,{method='GET',body,token}={}){const r=await fetch(B+path,{method,headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body&&JSON.stringify(body)});return {status:r.status,data:await r.json().catch(()=>null)};}
@@ -105,6 +106,21 @@ const fresh=r.data.token;
 r=await call('/auth/me',{token:fresh}); ok('fresh token works',r.status===200,r);
 r=await call('/auth/me',{token:before}); ok('change password signs out older tokens',r.status===401&&r.data.error.code==='TOKEN_REVOKED',r);
 r=await call('/admin/audit',{token:admin}); ok('password changes audited',['user.password_reset_requested','user.password_reset','user.password_changed'].every(a=>r.data.entries.some(e=>e.action===a)),r.data.entries?.slice(0,3));
+// listing photos: signed direct upload to Cloudinary, checked before saving, drafts only
+const cloudSign=(publicId,version)=>createHash('sha1').update(`public_id=${publicId}&version=${version}smoke-secret`).digest('hex');
+r=await call('/properties',{method:'POST',token:landlord,body:{...prop,property:{...prop.property,title:'Photo flat',address:'2 Smoke St'}}}); const ppid=r.data.property.id, plid=r.data.property.listing.id; ok('draft for photos',r.status===201&&r.data.property.photosEnabled===true&&r.data.property.listing.photos.length===0,r);
+r=await call('/properties/'+ppid+'/photos/upload',{method:'POST',token:landlord}); ok('upload signature',r.status===200&&r.data.uploadUrl.includes('/smoke/image/upload')&&r.data.fields.folder===`rentrust/listings/${plid}`&&!!r.data.fields.signature&&!('api_secret' in r.data.fields),r);
+const pubA=`rentrust/listings/${plid}/a1`, pubB=`rentrust/listings/${plid}/b2`;
+r=await call('/properties/'+ppid+'/photos',{method:'POST',token:landlord,body:{publicId:pubA,version:1700000000,signature:'0'.repeat(40)}}); ok('forged upload refused',r.status===400,r);
+r=await call('/properties/'+ppid+'/photos',{method:'POST',token:landlord,body:{publicId:'rentrust/listings/other/x',version:1700000000,signature:cloudSign('rentrust/listings/other/x',1700000000)}}); ok('photo from another folder refused',r.status===400,r);
+r=await call('/properties/'+ppid+'/photos',{method:'POST',token:landlord,body:{publicId:pubA,version:1700000000,signature:cloudSign(pubA,1700000000),width:1200,height:900}}); ok('photo added',r.status===200&&r.data.property.listing.photos.length===1&&r.data.property.listing.photos[0].thumb.includes('res.cloudinary.com/smoke'),r);
+r=await call('/properties/'+ppid+'/photos',{method:'POST',token:landlord,body:{publicId:pubB,version:1700000001,signature:cloudSign(pubB,1700000001)}}); const photoB=r.data.property.listing.photos[1]?.id; ok('second photo',r.data.property.listing.photos.length===2,r);
+r=await call('/properties/'+ppid+'/photos/'+photoB+'/cover',{method:'POST',token:landlord}); ok('make cover',r.status===200&&r.data.property.listing.photos[0].id===photoB,r);
+r=await call('/properties/'+ppid+'/photos/'+photoB,{method:'DELETE',token:renter}); ok('renter cannot touch photos',r.status===403,r);
+r=await call('/properties/'+ppid+'/photos/'+photoB,{method:'DELETE',token:landlord}); ok('remove photo',r.status===200&&r.data.property.listing.photos.length===1,r);
+r=await call('/properties/'+pid+'/photos/upload',{method:'POST',token:landlord}); ok('live listing photos locked',r.status===409,r);
+r=await call('/listings/'+lid,{token:renter}); ok('marketplace listing has photos list',Array.isArray(r.data.listing?.photos),r);
+r=await call('/admin/audit',{token:admin}); ok('photo changes audited',['listing.photo_added','listing.photo_cover','listing.photo_removed'].every(a=>r.data.entries.some(e=>e.action===a)),r.data.entries?.slice(0,3));
 // rate limits, body limit and security headers
 for(let i=0;i<3;i++) await call('/auth/password/forgot',{method:'POST',body:{email:'limit@example.test'}});
 r=await call('/auth/password/forgot',{method:'POST',body:{email:'limit@example.test'}}); ok('forgot is rate limited',r.status===429&&r.data.error.code==='RATE_LIMITED',r);

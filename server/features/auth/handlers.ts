@@ -3,7 +3,8 @@ import type { Request, Response } from "express";
 import { audit } from "../../shared/audit";
 import { signToken } from "../../shared/auth";
 import { prisma } from "../../shared/db";
-import { env } from "../../shared/env";
+import { sendEmail } from "../../shared/email";
+import { emailConnected, env } from "../../shared/env";
 import { badRequest, conflict, forbidden, unauthorized } from "../../shared/errors";
 import { clientIp, oneOf, str } from "../../shared/input";
 import { toast } from "../../shared/toast";
@@ -12,10 +13,10 @@ import { SELF_ASSIGNABLE_ROLES, createUser, findUserByEmail, findUserById, hashP
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 8;
 const RESET_MINUTES = 30;
-// No email gateway yet (ROADMAP Phase 2). Until there is one, the reset link is returned to the
-// page in test mode, the same way email and phone codes are (see env.ts). Outside test mode
-// nothing is sent yet, and the link is never logged, because a logged link is a working password.
-const SHOW_RESET_LINKS = env.testMode;
+// The reset link goes out by email once email is connected. Until then it is returned to the
+// page in test mode, the same way codes are (see env.ts). It is never logged otherwise, because
+// a logged link is a working password.
+const SHOW_RESET_LINKS = env.testMode && !emailConnected;
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 const usable = (user: { deletedAt: Date | null; status: string } | null) => user && !user.deletedAt && user.status === "ACTIVE";
@@ -106,9 +107,11 @@ export async function forgotPassword(req: Request, res: Response) {
       });
       await audit(tx, { actorId: user!.id, action: "user.password_reset_requested", entityType: "User", entityId: user!.id });
     });
+    const link = `${env.clientUrl}/reset-password?token=${token}`;
+    if (emailConnected) await emailResetLink(email, link);
     if (SHOW_RESET_LINKS) {
-      testLink = `${env.clientUrl}/reset-password?token=${token}`;
-      console.log(`[reset] link for ${email}: ${testLink}`);
+      testLink = link;
+      console.log(`[reset] link for ${email}: ${link}`);
     }
   }
 
@@ -117,6 +120,20 @@ export async function forgotPassword(req: Request, res: Response) {
     expiresInMinutes: RESET_MINUTES,
     ...(testLink ? { testLink } : {}),
   });
+}
+
+// A failed send is logged, not shown: answering differently for a real account would reveal it.
+async function emailResetLink(to: string, link: string) {
+  await sendEmail({
+    to,
+    subject: "Set a new RENTrust password",
+    heading: "Set a new password",
+    lines: [
+      `Someone asked to reset the password for this RENTrust account. The link works once and expires in ${RESET_MINUTES} minutes.`,
+      "If it wasn't you, ignore this email and your password stays the same.",
+    ],
+    button: { label: "Set a new password", url: link },
+  }).catch(() => {});
 }
 
 // Step 2: set the new password with the link's token. This signs out every other session.

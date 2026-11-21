@@ -29,6 +29,9 @@ There is no `railway.json` in the repo. Railway has deprecated those files and n
    | `SEED_PASSWORD` | A private password for the seeded test accounts. The default is published in the README. |
    | `PORT` | `8080` |
    | `CLIENT_URL` | Fill in after step 3, with the web service's address |
+   | `RESEND_API_KEY` | A Resend key with **Sending access** only |
+   | `EMAIL_FROM` | For example `RENTrust <no-reply@mail.rentrust.ng>`. The domain must be verified in Resend, or every email is refused. |
+   | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | From Cloudinary → Settings → API Keys |
    | `TEST_MODE` | `true` while email and SMS aren't connected. Railway sets `NODE_ENV=production` for you, which otherwise hides the on-screen codes and reset links, and nobody could confirm their email. Remove it once email and SMS work, and before real people sign up. |
 4. **Settings → Networking → Generate Domain**, with port **8080**. Note the address, such as `https://server-production-1234.up.railway.app`.
 5. Check it: opening that address plus `/api/v1/health` should show `{"status":"ok"}`.
@@ -72,6 +75,16 @@ Never run the seed on a database real people use: it adds test accounts that any
 
 Open the web address, sign in as `renter@rentrust.test` with your `SEED_PASSWORD`, and run the full loop from the [main README](../README.md#testing-the-mvp).
 
+## Before inviting external testers
+
+- [ ] **Resend domain verified.** In Resend → Domains, add `mail.rentrust.ng` (or whichever subdomain you send from), add the DNS records it shows, and wait for "Verified". Until then Resend only delivers to your own Resend account's address.
+- [ ] **`RESEND_API_KEY` and `EMAIL_FROM` set** on the server. Sign up with a fresh address and check the code arrives by email, not on screen.
+- [ ] **Cloudinary keys set.** As a landlord, add a photo to a draft listing.
+- [ ] **Keys never pasted anywhere public.** If a key was ever shared in a chat, a ticket or a commit, regenerate it and update the variable.
+- [ ] **`TEST_MODE`:** with email connected, it now only affects phone codes, which are still shown on screen because there is no SMS provider yet. That means anyone can "confirm" any phone number. Fine for a closed beta; connect SMS and remove `TEST_MODE` before an open launch.
+- [ ] **Backups:** in the Postgres service, turn on backups (Railway's **Backups** tab) so a bad migration or mistake can be undone.
+- [ ] **An admin account** whose password only you know, to approve identity checks and listings. The seeded `admin@rentrust.test` uses `SEED_PASSWORD`; keep that secret.
+
 ## When something goes wrong
 
 | Symptom | Likely cause |
@@ -80,6 +93,8 @@ Open the web address, sign in as `renter@rentrust.test` with your `SEED_PASSWORD
 | The browser console shows a CORS error | The server's `CLIENT_URL` doesn't exactly match the web address, including the `https://` at the start |
 | The server crashes saying a table "does not exist" | Migrations didn't run. Check the start command is `npm start` (not `node dist/index.js`); the log should say "All migrations have been successfully applied". |
 | The server crashes right after "prisma migrate deploy" | A migration failed. Read the deploy logs; the database is left as it was. |
+| Sign-up says "We couldn't send the email" | Resend refused it. The server log has Resend's reason after `[email] not sent`. Usually `EMAIL_FROM` isn't on a verified domain. |
+| Photos say uploads "aren't switched on" | One of the three `CLOUDINARY_*` variables is missing on the server |
 | "Application failed to respond" while the logs look fine | The domain's port isn't the one the app listens on. Set `PORT=8080` and the domain's port to 8080. |
 | Everyone gets "Too many attempts" at once | `TRUST_PROXY` isn't `1` |
 | Refreshing an inner page gives an error | The web service isn't starting with `npm start`, so Railway is serving the files some other way |

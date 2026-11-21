@@ -9,6 +9,10 @@ BASE="${DATABASE_URL%%\?*}"            # connection string without ?schema=...
 SMOKE_DB="rentrust_smoke"
 export DATABASE_URL="${BASE%/*}/$SMOKE_DB"
 export PORT=5097 REPORT_DELAY_MS=300 SEED_PASSWORD=
+# Never send real email from the smoke test, and use made-up Cloudinary keys: the test signs
+# its own fake uploads with the same secret to exercise the photo checks.
+export RESEND_API_KEY= EMAIL_FROM= TEST_MODE=true
+export CLOUDINARY_CLOUD_NAME=smoke CLOUDINARY_API_KEY=smoke-key CLOUDINARY_API_SECRET=smoke-secret
 
 psql "$BASE" -qc "DROP DATABASE IF EXISTS $SMOKE_DB" -c "CREATE DATABASE $SMOKE_DB" 2>/dev/null
 npx prisma migrate deploy >/dev/null

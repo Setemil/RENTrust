@@ -8,7 +8,7 @@ import { idParam, note as noteInput, oneOf } from "../../shared/input";
 import { notify } from "../../shared/notify";
 import { toast } from "../../shared/toast";
 import { roleNames } from "../auth/users";
-import { setListingStatus } from "../properties/listing";
+import { photoOrder, setListingStatus, toPhotos } from "../properties/listing";
 
 // RENTrust staff: review identity and property checks, moderate listings, manage users,
 // and read the interests and audit logs.
@@ -131,7 +131,7 @@ export async function listings(req: Request, res: Response) {
   const status = req.query.status ? oneOf(req.query.status, "status", statuses) : "PENDING_REVIEW";
   const rows = await prisma.listing.findMany({
     where: { status },
-    include: { property: { include: { lister: true } }, terms: { orderBy: { version: "desc" }, take: 1 } },
+    include: { property: { include: { lister: true } }, terms: { orderBy: { version: "desc" }, take: 1 }, photos: { orderBy: photoOrder } },
     orderBy: { updatedAt: status === "PENDING_REVIEW" ? "asc" : "desc" },
     take: 100,
   });
@@ -147,6 +147,7 @@ export async function listings(req: Request, res: Response) {
       otherCharges: l.otherCharges,
       updatedAt: l.updatedAt,
       publishedAt: l.publishedAt,
+      photos: toPhotos(l.photos),
       property: {
         id: l.property.id,
         type: l.property.type,

@@ -1,4 +1,5 @@
 import type { Db } from "./audit";
+import { emailConnected } from "./env";
 
 type Channel = "IN_APP" | "EMAIL" | "SMS";
 
@@ -6,9 +7,16 @@ type Channel = "IN_APP" | "EMAIL" | "SMS";
 //
 //   await notify(tx, { userId, event: "listing.approve", title: "RT-0001 is live", body: "…", link: "/app/…" });
 //
-// In-app is the default. Email and SMS gateways are not connected yet, so those rows are stored
-// as SIMULATED. Never put character-report content in title or body: email and SMS only ever
-// say "log in to review".
+// In-app is the default. An EMAIL row is QUEUED for shared/emailSender.ts when email is
+// connected, and SIMULATED when it isn't. SMS has no gateway yet, so it is always SIMULATED.
+// Never put character-report content in title or body: email and SMS only ever say "log in
+// to review".
+function statusFor(channel: Channel) {
+  if (channel === "IN_APP") return "SENT" as const;
+  if (channel === "EMAIL" && emailConnected) return "QUEUED" as const;
+  return "SIMULATED" as const;
+}
+
 export async function notify(
   db: Db,
   input: {
@@ -27,7 +35,7 @@ export async function notify(
     data: channels.map((channel) => ({
       ...message,
       channel,
-      status: channel === "IN_APP" ? ("SENT" as const) : ("SIMULATED" as const),
+      status: statusFor(channel),
     })),
   });
 }

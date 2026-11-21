@@ -4,7 +4,10 @@ import type { Toast } from "./toast";
 // For a deployed build, set VITE_API_URL to the API's full /api/v1 URL.
 const BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
 
-const UNREACHABLE = "Can't reach the RENTrust server. Check that it's running (npm run dev in server/).";
+// Developers get a hint about starting the API; everyone else gets plain advice.
+const UNREACHABLE = import.meta.env.DEV
+  ? "Can't reach the RENTrust server. Check that it's running (npm run dev in server/)."
+  : "We can't reach RENTrust right now. Check your connection and try again in a moment.";
 
 export type RoleName = "SEEKER" | "LANDLORD" | "AGENT" | "OFFICER" | "ADMIN";
 export type KycStatus = "NOT_STARTED" | "PENDING" | "VERIFIED" | "REJECTED";

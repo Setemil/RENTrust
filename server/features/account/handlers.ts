@@ -2,7 +2,8 @@ import { createHash, randomInt } from "node:crypto";
 import type { Request, Response } from "express";
 import { audit } from "../../shared/audit";
 import { prisma } from "../../shared/db";
-import { env } from "../../shared/env";
+import { emailConnected, env } from "../../shared/env";
+import { sendEmail } from "../../shared/email";
 import { badRequest, conflict } from "../../shared/errors";
 import { clientIp, oneOf, str } from "../../shared/input";
 import { notify } from "../../shared/notify";
@@ -14,8 +15,9 @@ import { CONSENT_DOC_VERSION } from "./consent";
 
 const OTP_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
-// No SMS/email gateway yet, so in test mode the code is returned to the page (see env.ts).
-const SHOW_CODES = env.testMode;
+// Email codes go out by email once it's connected. Phone codes have no SMS gateway yet. A code
+// that can't be sent is shown on the page instead, but only in test mode (see env.ts).
+const canSend = (channel: "EMAIL" | "PHONE") => channel === "EMAIL" && emailConnected;
 const ID_TYPES = ["NIN", "PASSPORT", "DRIVERS_LICENCE", "VOTERS_CARD"] as const;
 
 const hashCode = (code: string) => createHash("sha256").update(code).digest("hex");
@@ -57,11 +59,21 @@ export async function sendOtp(req: Request, res: Response) {
     data: { userId: user.id, channel, codeHash: hashCode(code), expiresAt: new Date(Date.now() + OTP_MINUTES * 60_000) },
   });
 
-  if (SHOW_CODES) console.log(`[otp] ${channel} code for ${user.email}: ${code}`);
+  if (canSend(channel)) {
+    await sendEmail({
+      to: user.email,
+      subject: `${code} is your RENTrust code`,
+      heading: "Confirm your email",
+      lines: [`Enter this code in RENTrust to confirm your email address. It expires in ${OTP_MINUTES} minutes.`],
+      code,
+    });
+  }
+  const showCode = !canSend(channel) && env.testMode;
+  if (showCode) console.log(`[otp] ${channel} code for ${user.email}: ${code}`);
   res.json({
     sentTo: channel === "EMAIL" ? user.email : user.phone,
     expiresInMinutes: OTP_MINUTES,
-    ...(SHOW_CODES ? { testCode: code } : {}),
+    ...(showCode ? { testCode: code } : {}),
   });
 }
 

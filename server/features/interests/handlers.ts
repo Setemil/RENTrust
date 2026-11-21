@@ -9,7 +9,7 @@ import { clientIp, idParam, note, oneOf, str } from "../../shared/input";
 import { notify } from "../../shared/notify";
 import { toast } from "../../shared/toast";
 import { CONSENT_DOC_VERSION } from "../account/consent";
-import { isRemoved } from "../properties/listing";
+import { isRemoved, listingInclude } from "../properties/listing";
 import { requestReport } from "./reportProvider";
 import { OPEN_STATUSES, interestSummary, recordInterestStatus, statusTimeline, transitionInterest } from "./status";
 
@@ -89,7 +89,7 @@ export async function create(req: Request, res: Response) {
 
   const listing = await prisma.listing.findUnique({
     where: { id: listingId },
-    include: { property: { include: { lister: true } }, terms: { orderBy: { version: "desc" }, take: 1 } },
+    include: listingInclude,
   });
   if (!listing || listing.status !== "LIVE" || isRemoved(listing)) throw notFound("This listing isn't available");
   if (listing.property.listerId === user.id) throw badRequest("You can't show interest in your own listing");

@@ -133,6 +133,23 @@ model PasswordReset {
   @@map("password_resets")
 }
 
+// A photo of a listing, stored on Cloudinary. The first by position is the cover.
+model ListingPhoto {
+  id        String   @id @default(uuid()) @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  publicId  String   @unique @map("public_id")
+  version   Int
+  width     Int?
+  height    Int?
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, position])
+  @@map("listing_photos")
+}
+
 // ---------- Identity checks ----------
 
 enum OtpChannel {
@@ -284,6 +301,7 @@ model Listing {
   terms     LandlordTerms[]
   saves     SavedListing[]
   interests Interest[]
+  photos    ListingPhoto[]
 
   @@index([status])
   @@map("listings")
@@ -441,8 +459,9 @@ enum NotificationChannel {
 }
 
 enum NotificationStatus {
+  QUEUED // waiting for the email sender (shared/emailSender.ts)
   SENT
-  SIMULATED // email/SMS gateways are not connected yet
+  SIMULATED // that channel's gateway isn't connected yet
   FAILED
 }
 
@@ -459,10 +478,15 @@ model Notification {
   status      NotificationStatus  @default(SENT)
   readAt      DateTime?           @map("read_at") @db.Timestamptz(3)
   createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  // Email delivery: tries so far, when it went out, and the last error if it didn't.
+  attempts    Int                 @default(0)
+  sentAt      DateTime?           @map("sent_at") @db.Timestamptz(3)
+  lastError   String?             @map("last_error")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, channel, readAt])
+  @@index([status, channel])
   @@map("notifications")
 }
 

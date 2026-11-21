@@ -1,4 +1,5 @@
 import type { ListingStatus, Prisma } from "../../generated/prisma/client";
+import { photoUrls } from "../../shared/cloudinary";
 import { audit } from "../../shared/audit";
 import { badRequest } from "../../shared/errors";
 import { listingRef, personName } from "../../shared/format";
@@ -84,10 +85,19 @@ export function parseListing(body: any) {
   };
 }
 
+// Cover first: the lowest position, then the oldest.
+export const photoOrder = [{ position: "asc" }, { createdAt: "asc" }] satisfies Prisma.ListingPhotoOrderByWithRelationInput[];
+
 export const listingInclude = {
   property: { include: { lister: true } },
   terms: { orderBy: { version: "desc" }, take: 1 },
+  photos: { orderBy: photoOrder },
 } satisfies Prisma.ListingInclude;
+
+// A listing's photos as the API sends them: ids plus ready-sized Cloudinary URLs.
+export function toPhotos(photos: { id: string; publicId: string; version: number; width: number | null; height: number | null }[]) {
+  return photos.map((p) => ({ id: p.id, width: p.width, height: p.height, ...photoUrls(p) }));
+}
 
 export type ListingWithProperty = Prisma.ListingGetPayload<{ include: typeof listingInclude }>;
 
@@ -112,6 +122,7 @@ export function toMarketListing(listing: ListingWithProperty, viewer: { kycStatu
     currency: listing.currency,
     availableFrom: listing.availableFrom,
     publishedAt: listing.publishedAt,
+    photos: toPhotos(listing.photos),
     property: {
       type: property.type,
       title: property.title,

@@ -2,13 +2,15 @@ import type { Request, Response } from "express";
 import { audit } from "../../shared/audit";
 import { hasRole } from "../../shared/auth";
 import { prisma } from "../../shared/db";
-import { badRequest, conflict, forbidden, notFound } from "../../shared/errors";
+import { destroyPhoto, isGenuineUpload, uploadSignature } from "../../shared/cloudinary";
+import { photosConnected } from "../../shared/env";
+import { HttpError, badRequest, conflict, forbidden, notFound } from "../../shared/errors";
 import { listingRef } from "../../shared/format";
-import { idParam, oneOf, str } from "../../shared/input";
+import { idParam, int, oneOf, str } from "../../shared/input";
 import { notify } from "../../shared/notify";
 import { toast, type Toast } from "../../shared/toast";
 import { adminIds } from "../auth/users";
-import { parseListing, parseProperty, parseTerms, setListingStatus } from "./listing";
+import { parseListing, parseProperty, parseTerms, photoOrder, setListingStatus, toPhotos } from "./listing";
 
 // A landlord's or agent's own properties: create, edit, set terms, submit for review,
 // pause and resume. Every property has exactly one listing.
@@ -26,11 +28,15 @@ const AVAILABILITY = {
   MARK_OCCUPIED: { from: ["LIVE", "PAUSED"], to: "OCCUPIED" },
 } as const;
 
+const MAX_PHOTOS = 12;
+const photoFolder = (listingId: string) => `rentrust/listings/${listingId}`;
+
 const propertyInclude = {
   listing: {
     include: {
       terms: { orderBy: { version: "desc" as const } },
       interests: { select: { status: true } },
+      photos: { orderBy: photoOrder },
     },
   },
 };
@@ -52,12 +58,13 @@ async function view(property: Loaded) {
     orderBy: { createdAt: "desc" },
     select: { kind: true, status: true, data: true, createdAt: true, reviewNote: true },
   });
-  const { interests, ...listing } = property.listing!;
+  const { interests, photos, ...listing } = property.listing!;
   const interestCounts: Record<string, number> = {};
   for (const { status } of interests) interestCounts[status] = (interestCounts[status] ?? 0) + 1;
   return {
     ...property,
-    listing: { ...listing, ref: listingRef(listing.ref), interestCounts },
+    listing: { ...listing, ref: listingRef(listing.ref), interestCounts, photos: toPhotos(photos) },
+    photosEnabled: photosConnected,
     verification,
   };
 }
@@ -196,3 +203,81 @@ export async function setAvailability(req: Request, res: Response) {
   await prisma.$transaction((tx) => setListingStatus(tx, { listing, to, action: action.toLowerCase(), actorId: req.user!.id }));
   await sendProperty(req, res, toast.info(`${listingRef(listing.ref)} is now ${to.toLowerCase()}`));
 }
+
+// ---------- Photos ----------
+// Photos change only while the listing is a draft, like its other details: a live listing's
+// photos are part of what RENTrust reviewed.
+
+function assertPhotosEditable(property: Loaded) {
+  if (!photosConnected) throw new HttpError(503, "Photo uploads aren't set up yet", "PHOTOS_OFF");
+  if (property.listing!.status !== "DRAFT") throw conflict("Photos can be changed only while the listing is a draft.");
+}
+
+function loadPhoto(property: Loaded, req: Request) {
+  const photo = property.listing!.photos.find((p) => p.id === idParam(req, "photoId"));
+  if (!photo) throw notFound("Photo not found");
+  return photo;
+}
+
+// Step 1 of an upload: a signature that lets the browser send one photo straight to Cloudinary.
+export async function photoUpload(req: Request, res: Response) {
+  const property = await loadOwn(req);
+  assertPhotosEditable(property);
+  if (property.listing!.photos.length >= MAX_PHOTOS) throw conflict(`A listing can have up to ${MAX_PHOTOS} photos.`);
+  res.json(uploadSignature(photoFolder(property.listing!.id)));
+}
+
+// Step 2: save the photo, once Cloudinary's reply proves the upload is real and in this listing's folder.
+export async function addPhoto(req: Request, res: Response) {
+  const property = await loadOwn(req);
+  assertPhotosEditable(property);
+  const listing = property.listing!;
+  const body = req.body ?? {};
+  const publicId = str(body.publicId, "publicId", { max: 300 });
+  const version = int(body.version, "version", { min: 1 })!;
+  const signature = str(body.signature, "signature", { max: 100 });
+  if (!publicId.startsWith(photoFolder(listing.id) + "/") || !isGenuineUpload({ publicId, version, signature })) {
+    throw badRequest("That upload couldn't be checked. Try adding the photo again.");
+  }
+  if (listing.photos.length >= MAX_PHOTOS) throw conflict(`A listing can have up to ${MAX_PHOTOS} photos.`);
+
+  await prisma.$transaction(async (tx) => {
+    const photo = await tx.listingPhoto.create({
+      data: {
+        listingId: listing.id,
+        publicId,
+        version,
+        width: int(body.width, "width", { optional: true }),
+        height: int(body.height, "height", { optional: true }),
+        position: (listing.photos.at(-1)?.position ?? -1) + 1,
+      },
+    });
+    await audit(tx, { actorId: req.user!.id, action: "listing.photo_added", entityType: "Listing", entityId: listing.id, after: { photoId: photo.id, publicId } });
+  });
+  await sendProperty(req, res);
+}
+
+export async function makeCover(req: Request, res: Response) {
+  const property = await loadOwn(req);
+  assertPhotosEditable(property);
+  const photo = loadPhoto(property, req);
+  const first = property.listing!.photos[0];
+  await prisma.$transaction(async (tx) => {
+    await tx.listingPhoto.update({ where: { id: photo.id }, data: { position: first.position - 1 } });
+    await audit(tx, { actorId: req.user!.id, action: "listing.photo_cover", entityType: "Listing", entityId: property.listing!.id, after: { photoId: photo.id } });
+  });
+  await sendProperty(req, res, toast.success("Cover photo updated"));
+}
+
+export async function removePhoto(req: Request, res: Response) {
+  const property = await loadOwn(req);
+  assertPhotosEditable(property);
+  const photo = loadPhoto(property, req);
+  await prisma.$transaction(async (tx) => {
+    await tx.listingPhoto.delete({ where: { id: photo.id } });
+    await audit(tx, { actorId: req.user!.id, action: "listing.photo_removed", entityType: "Listing", entityId: property.listing!.id, before: { photoId: photo.id, publicId: photo.publicId } });
+  });
+  await destroyPhoto(photo.publicId);
+  await sendProperty(req, res, toast.info("Photo removed"));
+}
+

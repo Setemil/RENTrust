@@ -68,8 +68,8 @@ Architecture:
 
 ## Phase 2: Real communications, documents and KYC (about 2 weeks)
 
-- [ ] An email and SMS gateway behind `notify()`, sent through the job queue with retries and delivery status. OTP codes stop being returned to the page.
-- [ ] Branded email templates (logo, navy and green) from the RENTrust domain, with SPF, DKIM and DMARC set up.
+- [ ] An email and SMS gateway behind `notify()`, sent through the job queue with retries and delivery status. OTP codes stop being returned to the page. **Email done** (Resend: codes, reset links, and notifications sent in the background with retries and status). SMS still to do.
+- [ ] Branded email templates (logo, navy and green) from the RENTrust domain, with SPF, DKIM and DMARC set up. The branded layout is built (`shared/email.ts`); the domain and its DNS records are still to do.
 - [ ] Private document upload to object storage, using signed expiring links and type and size limits. Covers ID, CAC, C of O or deed, letter of authority and inspection photos.
 - [ ] Uploads wired into the KYC, KYB, ownership and mandate forms and the admin review screens.
 - [ ] KYC/KYB provider integration (BVN or NIN for individuals, CAC for organisations), with manual review as the fallback.
@@ -130,7 +130,7 @@ Build:
 
 ## Phase 8: Marketplace quality and admin (about 1.5 weeks, can run alongside Phases 5–7)
 
-- [ ] Listing photos: upload, reorder, a cover image, and thumbnails served through a CDN.
+- [x] Listing photos: upload, reorder, a cover image, and thumbnails served through a CDN. (Cloudinary, signed direct uploads, up to 12 per listing, editable while a draft.)
 - [ ] Search: filters for price, bedrooms, area, type and furnishing, plus sorting and cursor pagination. Postgres full-text and trigram search for now.
 - [ ] Saved searches with alerts.
 - [ ] Report a listing or a user, with a moderation queue and suspend and ban actions.

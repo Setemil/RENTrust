@@ -55,6 +55,8 @@ export type InterestSummary = {
   termsVersion: number;
 };
 
+export type Photo = { id: string; url: string; thumb: string; width: number | null; height: number | null };
+
 export type MarketListing = {
   id: string;
   ref: string;
@@ -66,6 +68,7 @@ export type MarketListing = {
   currency: string;
   availableFrom: string | null;
   publishedAt: string | null;
+  photos: Photo[];
   property: PropertyFields;
   lister: { name: string; listedAs: "OWNER" | "AGENT"; identityVerified: boolean };
   terms: Terms | null;
@@ -172,7 +175,10 @@ export type OwnProperty = Omit<PropertyFields, "address"> & {
     publishedAt: string | null;
     terms: Terms[];
     interestCounts: Partial<Record<InterestStatus, number>>;
+    photos: Photo[];
   };
+  // False when this environment has no Cloudinary keys, so uploads are switched off.
+  photosEnabled: boolean;
   verification: {
     kind: "OWNERSHIP" | "MANDATE";
     status: "PENDING" | "APPROVED" | "REJECTED";

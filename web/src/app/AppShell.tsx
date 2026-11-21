@@ -109,7 +109,7 @@ export function AppLayout() {
         </nav>
       </header>
       <p className={styles.testStrip}>
-        <strong>Test build.</strong> Identity checks, character reports, emails and SMS are simulated. Nothing here is a real listing.
+        <strong>Test build.</strong> Identity checks, character reports and text messages are simulated. Nothing here is a real listing.
       </p>
       <main id="main">
         <Outlet />

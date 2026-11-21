@@ -11,6 +11,15 @@
       "port": 5050
     },
     {
+      "name": "api-preview-db",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd server && set -a && . ./.env && set +a && DATABASE_URL=\"${DATABASE_URL%/*}/rentrust_preview\" PORT=5097 RESEND_API_KEY= CLIENT_URL=http://localhost:5174 npx tsx index.ts"
+      ],
+      "port": 5097
+    },
+    {
       "name": "web",
       "runtimeExecutable": "sh",
       "runtimeArgs": [

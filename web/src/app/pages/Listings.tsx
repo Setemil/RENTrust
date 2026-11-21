@@ -5,6 +5,7 @@ import { api } from "../api";
 import { useAuth } from "../auth";
 import { formStyles, Field, SelectField } from "../Form";
 import { furnishingLabel, rent, typeLabel } from "../format";
+import { Cover } from "../Photos";
 import PlotMark from "../PlotMark";
 import type { MarketListing } from "../types";
 import { Empty, ErrorNote, Loading, Page, Status, Tabs, uiStyles } from "../ui";
@@ -156,7 +157,7 @@ export default function Listings({ savedOnly = false }: { savedOnly?: boolean })
         <ul className={styles.results}>
           {listings.map((l) => (
             <li key={l.id} className={styles.result}>
-              <PlotMark refCode={l.ref} verified={l.property.verificationStatus === "VERIFIED"} />
+              {l.photos[0] ? <Cover photo={l.photos[0]} /> : <PlotMark refCode={l.ref} verified={l.property.verificationStatus === "VERIFIED"} />}
               <div className={styles.main}>
                 <p className={styles.ref}>
                   {l.ref} · {typeLabel[l.property.type]}

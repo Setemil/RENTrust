@@ -100,10 +100,12 @@ New to the server? Read [`server/README.md`](server/README.md). It explains how 
 
 What is simulated until providers are chosen (the UI labels each one "Test mode"):
 
-- **Email and SMS codes, and password-reset links:** in test mode they are returned to the page and logged by the server. Test mode is on locally; on a host, set `TEST_MODE=true`. Outside test mode nothing is sent until the email and SMS gateways are connected.
+- **Email:** real once `RESEND_API_KEY` and `EMAIL_FROM` are set. Email codes, password-reset links and notifications then go out through Resend. Without them, codes and links are shown on the page in test mode instead.
+- **SMS:** no gateway yet. Phone codes are shown on the page in test mode (on locally; on a host, set `TEST_MODE=true`). SMS notifications are stored as `SIMULATED`.
+- **Listing photos:** real once the three `CLOUDINARY_*` keys are set. Landlords add up to 12 photos while a listing is a draft; renters see them on the listing and as the cover in search.
 - **KYC / KYB and property documents:** go to the admin review queue. Only a masked ID number and a document reference are stored; there is no file upload yet.
 - **Character report:** `features/interests/reportProvider.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
-- **Email and SMS notifications:** stored as `SIMULATED` rows next to the in-app notification. Report content never goes in them.
+- **Notifications:** each is stored in-app, plus an email row (sent in the background when email is connected) and an SMS row (simulated). Report content never goes in them.
 
 ## Getting started
 
@@ -158,6 +160,9 @@ A full loop: sign in as the renter and show interest in a Bola Adeyemi listing. 
 | `JWT_EXPIRES_IN` | Token lifetime | `1d` |
 | `CLIENT_URL` | Allowed CORS origin | `http://localhost:5173` |
 | `REPORT_DELAY_MS` | Delay before the simulated character report is ready | `4000` |
+| `TEST_MODE` | Show codes and links on screen when they can't be sent. On locally; set `true` on a host for a beta. | on locally |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Real email through Resend | empty (simulated) |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Listing photos | empty (uploads off) |
 | `TRUST_PROXY` | How many proxies sit in front of the API. Set it to match the host (usually `1`) so rate limits and audit rows see the visitor's real IP. | `0` |
 
 ### Records and errors

@@ -9,6 +9,7 @@ import PlotMark from "../PlotMark";
 import type { ListingStatus, OwnProperty } from "../types";
 import { Empty, ErrorNote, Loading, Page, Schedule, Section, Status, TestNote, type BeaconState, uiStyles } from "../ui";
 import { useAction, useApi } from "../useApi";
+import { PhotoManager } from "../Photos";
 import { TermsList } from "./ListingDetail";
 import { TermsFields, readTerms } from "./PropertyForm";
 import styles from "./Properties.module.css";
@@ -325,6 +326,8 @@ export function PropertyDetail() {
               </details>
             )}
           </Section>
+
+          <PhotoManager property={p} onChange={reload} />
 
           <Section title="Details" id="details-title">
             <Schedule

@@ -5,6 +5,7 @@ import TitleBlock from "../../components/TitleBlock";
 import { useAuth } from "../auth";
 import { CheckField, TextAreaField, formStyles } from "../Form";
 import { furnishingLabel, interestStatusLabel, money, periodLabel, rent, shortDate, termsRows, typeLabel } from "../format";
+import { Gallery } from "../Photos";
 import PlotMark from "../PlotMark";
 import type { ListingDetail as Detail, SeekerInterest, TermsContent } from "../types";
 import { ErrorNote, Loading, Page, Schedule, Section, Status, TestNote, uiStyles } from "../ui";
@@ -208,6 +209,7 @@ export default function ListingDetail() {
     >
       <div className={uiStyles.twoCol}>
         <div className={uiStyles.stack}>
+          <Gallery photos={l.photos} title={p.title} />
           <div className={styles.plate}>
             <PlotMark refCode={l.ref} verified={p.verificationStatus === "VERIFIED"} size={88} />
             <dl className={styles.checks}>

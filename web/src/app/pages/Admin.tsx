@@ -3,8 +3,9 @@ import { Link, Outlet, useSearchParams } from "react-router";
 import button from "../../components/Button.module.css";
 import { Field, SelectField, TextAreaField, formStyles } from "../Form";
 import { dateTime, interestStatusLabel, listingStatusLabel, money, rent, shortDate, termsRows, typeLabel } from "../format";
-import type { ListingStatus, RentPeriod, TermsContent } from "../types";
+import type { ListingStatus, RentPeriod, TermsContent, Photo } from "../types";
 import { Empty, ErrorNote, Loading, Page, Schedule, Status, Tabs, uiStyles } from "../ui";
+import { Gallery } from "../Photos";
 import { useAction, useApi } from "../useApi";
 import { interestBeacon } from "./Interests";
 import { listingBeacon } from "./Properties";
@@ -237,6 +238,7 @@ type AdminListing = {
   otherCharges: { label: string; amount: number }[];
   updatedAt: string;
   publishedAt: string | null;
+  photos: Photo[];
   property: { id: string; type: "RESIDENTIAL" | "SHORT_LET" | "OFFICE"; title: string; address: string; area: string; lga: string; state: string; bedrooms: number; bathrooms: number; description: string; verificationStatus: string; listedAs: string };
   lister: { name: string; email: string; kycStatus: string };
   terms: { version: number; content: TermsContent } | null;
@@ -302,6 +304,7 @@ export function AdminListings() {
                   {l.terms && (
                     <Schedule compact rows={[{ label: "Terms", value: `Version ${l.terms.version}` }, ...termsRows(l.terms.content).slice(0, 5)]} />
                   )}
+                  <Gallery photos={l.photos} title={l.property.title} />
                   {l.property.description && <p className={uiStyles.small}>{l.property.description}</p>}
                   {l.reviewNote && <p className={`${uiStyles.small}`}><strong>Last note:</strong> {l.reviewNote}</p>}
                 </div>
