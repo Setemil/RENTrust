@@ -27,6 +27,8 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
+  // Swaps in a fresh token, e.g. after a password change signs out every older one.
+  startSession: (response: AuthResponse) => void;
   // Re-reads the account after a check changes it (verified email, identity status…).
   refresh: () => Promise<void>;
 };
@@ -79,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       logout,
       refresh,
+      startSession,
       login: async (email, password) =>
         startSession(await api<AuthResponse>("/auth/login", { method: "POST", body: { email, password } })),
       register: async (input) =>

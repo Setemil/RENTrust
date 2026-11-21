@@ -89,4 +89,28 @@ r=await call('/listings/not-a-uuid',{token:renter}); ok('bad id 404',r.status===
 r=await call('/admin/users/'+u.id,{method:'PATCH',token:admin,body:{status:'ACTIVE'}}); ok('success carries a toast',r.data.toast?.kind==='success'&&r.data.toast.message==='Account reactivated',r);
 r=await call('/admin/verifications/'+v.id,{method:'PATCH',token:admin,body:{decision:'APPROVE'}}); ok('conflict carries an error toast',r.status===409&&r.data.toast?.kind==='error'&&r.data.toast.message===r.data.error.message,r);
 r=await call('/admin/users/'+u.id,{method:'PATCH',token:admin,body:{status:'NOPE'}}); ok('form errors carry no toast',r.status===400&&!r.data.toast,r);
+// password reset: one-time link, same answer for unknown emails, signs out older tokens
+r=await call('/auth/password/forgot',{method:'POST',body:{email:'nobody@example.test'}}); ok('forgot unknown email: same answer, no link',r.status===200&&!r.data.testLink&&r.data.message.startsWith('If an account'),r);
+r=await call('/auth/password/forgot',{method:'POST',body:{email}}); const resetToken=new URL(r.data.testLink??'http://x/').searchParams.get('token'); ok('forgot sends a link',r.status===200&&!!resetToken,r);
+r=await call('/auth/password/reset',{method:'POST',body:{token:'not-a-real-token',newPassword:'newpass1234'}}); ok('reset with a bad link 400',r.status===400&&r.data.error.code==='RESET_LINK_INVALID',r);
+r=await call('/auth/password/reset',{method:'POST',body:{token:resetToken,newPassword:'short'}}); ok('reset needs a long password',r.status===400,r);
+r=await call('/auth/me',{token:nu}); ok('old token works before reset',r.status===200,r);
+r=await call('/auth/password/reset',{method:'POST',body:{token:resetToken,newPassword:'newpass1234'}}); ok('reset',r.status===200&&r.data.toast?.kind==='success',r);
+r=await call('/auth/me',{token:nu}); ok('reset signs out older tokens',r.status===401&&r.data.error.code==='TOKEN_REVOKED',r);
+r=await call('/auth/password/reset',{method:'POST',body:{token:resetToken,newPassword:'another1234'}}); ok('link works only once',r.status===400,r);
+r=await call('/auth/login',{method:'POST',body:{email,password:'newpass1234'}}); ok('sign in with new password',r.status===200,r);
+const before=r.data.token; await new Promise(x=>setTimeout(x,1100));
+r=await call('/auth/password',{method:'PATCH',token:before,body:{currentPassword:'newpass1234',newPassword:'changed1234'}}); ok('change password returns a fresh token',r.status===200&&!!r.data.token,r);
+const fresh=r.data.token;
+r=await call('/auth/me',{token:fresh}); ok('fresh token works',r.status===200,r);
+r=await call('/auth/me',{token:before}); ok('change password signs out older tokens',r.status===401&&r.data.error.code==='TOKEN_REVOKED',r);
+r=await call('/admin/audit',{token:admin}); ok('password changes audited',['user.password_reset_requested','user.password_reset','user.password_changed'].every(a=>r.data.entries.some(e=>e.action===a)),r.data.entries?.slice(0,3));
+// rate limits, body limit and security headers
+for(let i=0;i<3;i++) await call('/auth/password/forgot',{method:'POST',body:{email:'limit@example.test'}});
+r=await call('/auth/password/forgot',{method:'POST',body:{email:'limit@example.test'}}); ok('forgot is rate limited',r.status===429&&r.data.error.code==='RATE_LIMITED',r);
+for(let i=0;i<10;i++) await call('/auth/login',{method:'POST',body:{email:'limit@example.test',password:'wrong-password'}});
+r=await call('/auth/login',{method:'POST',body:{email:'limit@example.test',password:'wrong-password'}}); ok('login is rate limited per email',r.status===429,r);
+r=await call('/auth/login',{method:'POST',body:{email:'admin@rentrust.test',password:'rentrust-test'}}); ok('other emails can still sign in',r.status===200,r);
+r=await call('/auth/login',{method:'POST',body:{email:'x@example.test',password:'x'.repeat(200_000)}}); ok('oversized body 413',r.status===413&&r.data.error.code==='BODY_TOO_LARGE',r);
+const h=await fetch(B+'/health'); ok('security headers',h.headers.get('x-content-type-options')==='nosniff'&&!h.headers.get('x-powered-by'),Object.fromEntries(h.headers));
 console.log(fails?`\n${fails} FAILED`:'\nALL PASSED'); process.exit(fails?1:0);

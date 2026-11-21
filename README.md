@@ -88,8 +88,9 @@ server/
 
 New to the server? Read [`server/README.md`](server/README.md). It explains how a request flows, how to add a feature, and the rules the code follows. Run `npm run smoke` after any change: it exercises every feature against a throwaway database.
 
-| Area | Routes (all under `/api/v1`, all need a signed-in account) |
+| Area | Routes (all under `/api/v1`; everything except sign-in needs a signed-in account) |
 | --- | --- |
+| Sign-in (no account needed) | `POST /auth/register`, `POST /auth/login`, `POST /auth/password/forgot`, `POST /auth/password/reset` |
 | Account checks | `GET /account/status`, `POST /account/otp/send`, `POST /account/otp/verify`, `POST /account/consents`, `POST /account/verification` |
 | Marketplace | `GET /listings`, `GET /listings/:id`, `POST /listings/:id/terms/accept`, `POST` / `DELETE /listings/:id/save` |
 | Landlord / agent | `GET` / `POST /properties`, `GET` / `PATCH /properties/:id`, `PUT /properties/:id/terms`, `POST /properties/:id/submit`, `POST /properties/:id/availability` |
@@ -99,7 +100,7 @@ New to the server? Read [`server/README.md`](server/README.md). It explains how 
 
 What is simulated until providers are chosen (the UI labels each one "Test mode"):
 
-- **Email and SMS codes:** outside production the code is returned to the page and logged by the server.
+- **Email and SMS codes, and password-reset links:** outside production they are returned to the page and logged by the server. In production nothing is sent until the email and SMS gateways are connected.
 - **KYC / KYB and property documents:** go to the admin review queue. Only a masked ID number and a document reference are stored; there is no file upload yet.
 - **Character report:** `features/interests/reportProvider.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
 - **Email and SMS notifications:** stored as `SIMULATED` rows next to the in-app notification. Report content never goes in them.
@@ -153,11 +154,13 @@ A full loop: sign in as the renter and show interest in a Bola Adeyemi listing. 
 | `JWT_EXPIRES_IN` | Token lifetime | `1d` |
 | `CLIENT_URL` | Allowed CORS origin | `http://localhost:5173` |
 | `REPORT_DELAY_MS` | Delay before the simulated character report is ready | `4000` |
+| `TRUST_PROXY` | How many proxies sit in front of the API. Set it to match the host (usually `1`) so rate limits and audit rows see the visitor's real IP. | `0` |
 
 ### Records and errors
 
 - The audit log, report access log and interest status history are append-only: the database refuses updates, deletes and truncation. Audit rows are hash-chained; run `npm run audit:verify` to check nothing was altered.
 - Users, properties and listings are soft-deleted (`deleted_at`), and records that serve as evidence can't be cascade-deleted.
+- Login, sign-up, codes and password reset are rate limited, request bodies are capped at 100 KB, and `helmet` sets the standard security headers. Changing or resetting a password signs out every older token.
 - Every API error is `{ "error": { "code", "message", "requestId" } }`, and every response carries an `X-Request-Id` header that also appears on the audit rows the request wrote.
 - Change an interest's status only through `transitionInterest` in `server/features/interests/status.ts`, and a listing's through `setListingStatus` in `server/features/properties/listing.ts`. They write the history and audit rows, and `transitionInterest` also guards against races.
 

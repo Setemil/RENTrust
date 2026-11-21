@@ -27,17 +27,21 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) throw unauthorized();
 
-  let userId: string;
+  let token: { sub: string; iat: number };
   try {
-    userId = (jwt.verify(header.slice(7), env.jwtSecret) as { sub: string }).sub;
+    token = jwt.verify(header.slice(7), env.jwtSecret) as { sub: string; iat: number };
   } catch {
     throw unauthorized("Invalid or expired token", "TOKEN_INVALID");
   }
 
   // Load the user on every request, so suspensions, deletions and role changes apply at once.
-  const user = await findUserById(userId);
+  const user = await findUserById(token.sub);
   if (!user || user.deletedAt || user.status !== "ACTIVE") {
     throw unauthorized("Account not found or inactive", "ACCOUNT_INACTIVE");
+  }
+  // A password change or reset signs out every token issued before it. (iat is in seconds.)
+  if (user.passwordChangedAt && token.iat < Math.floor(user.passwordChangedAt.getTime() / 1000)) {
+    throw unauthorized("Your password was changed. Sign in again.", "TOKEN_REVOKED");
   }
 
   req.user = user;

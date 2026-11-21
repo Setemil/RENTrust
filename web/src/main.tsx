@@ -12,9 +12,11 @@ import Home from "./app/pages/Home";
 import { InterestDetail, InterestList } from "./app/pages/Interests";
 import ListingDetail from "./app/pages/ListingDetail";
 import Listings from "./app/pages/Listings";
+import ForgotPassword from "./app/pages/ForgotPassword";
 import Login from "./app/pages/Login";
 import Notifications from "./app/pages/Notifications";
 import Profile from "./app/pages/Profile";
+import ResetPassword from "./app/pages/ResetPassword";
 import { PropertyDetail, PropertyList } from "./app/pages/Properties";
 import { EditProperty, NewProperty } from "./app/pages/PropertyForm";
 import Signup from "./app/pages/Signup";
@@ -36,6 +38,8 @@ createRoot(document.getElementById("root")!).render(
             <Route element={<GuestLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Home />} />

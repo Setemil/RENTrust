@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router";
 import button from "../../components/Button.module.css";
 import AuthLayout from "../AuthLayout";
 import { useAuth } from "../auth";
@@ -66,6 +67,9 @@ export default function Login() {
         <button type="submit" className={`${button.button} ${formStyles.submit}`} disabled={submitting}>
           {submitting ? "Signing in…" : "Sign in"}
         </button>
+        <p className={formStyles.foot}>
+          Forgot your password? <Link to="/forgot-password">Set a new one</Link>
+        </p>
       </form>
     </AuthLayout>
   );

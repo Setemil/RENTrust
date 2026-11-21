@@ -12,6 +12,7 @@ const DEFAULT_CODES: Record<number, string> = {
   403: "FORBIDDEN",
   404: "NOT_FOUND",
   409: "CONFLICT",
+  429: "RATE_LIMITED",
 };
 
 export class HttpError extends Error {
@@ -32,3 +33,4 @@ export const unauthorized = (message = "Authentication required", code?: string)
 export const forbidden = (message = "You don't have access to this", code?: string) => new HttpError(403, message, code);
 export const notFound = (message = "Not found", code?: string) => new HttpError(404, message, code);
 export const conflict = (message: string, code?: string) => new HttpError(409, message, code);
+export const tooManyRequests = (message = "Too many attempts. Wait a few minutes and try again.") => new HttpError(429, message);

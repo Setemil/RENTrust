@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import button from "../../components/Button.module.css";
 import TitleBlock from "../../components/TitleBlock";
-import { api } from "../api";
+import { api, type AuthResponse } from "../api";
 import { useAuth } from "../auth";
 import { Field, clearErrorOnInput, formStyles } from "../Form";
 import { Page } from "../ui";
@@ -11,7 +11,7 @@ import styles from "./Profile.module.css";
 type PasswordErrors = Partial<Record<"currentPassword" | "newPassword" | "confirmPassword", string>>;
 
 function ChangePassword() {
-  const { token } = useAuth();
+  const { token, startSession } = useAuth();
   const [errors, setErrors] = useState<PasswordErrors>({});
   const [formError, setFormError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -37,7 +37,8 @@ function ChangePassword() {
 
     setSubmitting(true);
     try {
-      await api("/auth/password", { method: "PATCH", token, body: { currentPassword, newPassword } });
+      // The change signs out every older token, including this tab's, so keep the fresh one.
+      startSession(await api<AuthResponse>("/auth/password", { method: "PATCH", token, body: { currentPassword, newPassword } }));
       form.reset();
       setSaved(true);
     } catch (err) {

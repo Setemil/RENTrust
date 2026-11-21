@@ -43,26 +43,30 @@ enum ConsentKind {
 }
 
 model User {
-  id            String     @id @default(uuid()) @db.Uuid
-  email         String     @unique
-  phone         String     @unique
-  passwordHash  String     @map("password_hash")
-  userType      UserType   @default(IND) @map("user_type")
-  profile       Json       @default("{}")
-  status        UserStatus @default(ACTIVE)
-  kycStatus     KycStatus  @default(NOT_STARTED) @map("kyc_status")
-  emailVerified Boolean    @default(false) @map("email_verified")
-  phoneVerified Boolean    @default(false) @map("phone_verified")
-  mfaEnabled    Boolean    @default(false) @map("mfa_enabled")
-  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                String     @id @default(uuid()) @db.Uuid
+  email             String     @unique
+  phone             String     @unique
+  passwordHash      String     @map("password_hash")
+  userType          UserType   @default(IND) @map("user_type")
+  profile           Json       @default("{}")
+  status            UserStatus @default(ACTIVE)
+  kycStatus         KycStatus  @default(NOT_STARTED) @map("kyc_status")
+  emailVerified     Boolean    @default(false) @map("email_verified")
+  phoneVerified     Boolean    @default(false) @map("phone_verified")
+  mfaEnabled        Boolean    @default(false) @map("mfa_enabled")
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   // Soft delete. Evidence records point at users, so accounts are anonymised, never removed.
-  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(3)
+  deletedAt         DateTime?  @map("deleted_at") @db.Timestamptz(3)
+  // Sign-in tokens issued before this moment stop working, so changing or resetting the
+  // password signs out every other session.
+  passwordChangedAt DateTime?  @map("password_changed_at") @db.Timestamptz(3)
 
   roles    UserRole[]
   consents Consent[]
 
   otpCodes         OtpCode[]
+  passwordResets   PasswordReset[]
   verifications    Verification[]         @relation("VerificationSubmitter")
   reviews          Verification[]         @relation("VerificationReviewer")
   properties       Property[]
@@ -110,6 +114,23 @@ model Consent {
 
   @@index([userId])
   @@map("consents")
+}
+
+// A one-time link for setting a new password. Only a hash of the link's token is stored.
+model PasswordReset {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  // Set when the link is used, or when a newer link replaces it.
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  ip        String?   @db.Inet
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_resets")
 }
 
 // ---------- Identity checks ----------

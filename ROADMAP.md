@@ -54,12 +54,12 @@ Records:
 API and security:
 - [x] One error shape everywhere, `{ error: { code, message, requestId } }`, plus an `X-Request-Id` header on every response.
 - [ ] zod validation on every request body and query, which also produces the OpenAPI spec.
-- [ ] `helmet`, a body-size limit, and rate limits (strict on login, register, OTP and password reset).
-- [ ] Password reset by email.
+- [x] `helmet`, a body-size limit, and rate limits (strict on login, register, OTP and password reset). Counts are in memory, which is fine for one server; move them to Postgres or Redis before running more than one.
+- [x] Password reset by email: a one-time link that expires in 30 minutes, and a reset or password change signs out every older token. Until the email gateway (Phase 2) the link is shown on screen in test mode, and nothing is sent in production.
 - [ ] Short-lived access tokens with a refresh token, revoked on password change, suspension or deletion.
 - [ ] TOTP 2FA, required for landlords, agents and all staff.
 - [ ] Integration tests (Vitest and Supertest against a test database): marketplace gating, every role check, cross-user access, the interest state machine and audit-chain integrity.
-- [ ] CI that runs typecheck, build and tests on every PR.
+- [x] CI that runs typecheck, build and the smoke test on every push to `alpha` and every PR (`.github/workflows/ci.yml`). Add the integration tests to it when they exist.
 
 Architecture:
 - [x] One folder per feature in `server/features/` (routes and handlers), shared tools in `server/shared/`, and a developer guide in `server/README.md`. New features (`inspections`, `agreements`, `payments`, `tenancies`) each get their own folder.

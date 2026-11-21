@@ -79,6 +79,7 @@ On the web side, `useAction` in `web/src/app/useApi.ts` shows any toast that arr
 | `shared/audit.ts` | `audit(tx, {...})`: record a sensitive action |
 | `shared/notify.ts` | `notify(tx, {...})`: tell a user something happened |
 | `shared/toast.ts` | `toast.success("…")`: pop a message up in the web app (see below) |
+| `shared/rateLimit.ts` | `limit({ minutes, max, by })`: cap how often a visitor can call a route. Put one on any route that sends a message, checks a secret or works without signing in. |
 | `shared/format.ts` | `listingRef`, `personName` |
 | `shared/env.ts` | Every environment setting. Don't read `process.env` anywhere else. |
 | `shared/context.ts` | The current request's ID, IP and user agent (used by `audit`) |
