@@ -6,7 +6,7 @@ import { acceptConsents, sendOtp, status, submitVerification, verifyOtp } from "
 const router = Router();
 
 router.get("/status", status);
-// Each code sent costs an SMS once a gateway is connected, so sending is capped per user.
+// Each code sent costs a WhatsApp or SMS message, so sending is capped per user.
 router.post("/otp/send", limit({ minutes: 15, max: 5, by: "user" }), sendOtp);
 router.post("/otp/verify", limit({ minutes: 15, max: 10, by: "user" }), verifyOtp);
 router.post("/consents", acceptConsents);

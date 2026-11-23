@@ -26,6 +26,16 @@ export const env = {
   // e.g. "RENTrust <no-reply@mail.rentrust.ng>". Without them, email is simulated.
   resendApiKey: process.env.RESEND_API_KEY || "",
   emailFrom: process.env.EMAIL_FROM || "",
+  // Phone codes through Termii (termii.com). The base URL is shown on your Termii dashboard.
+  // SMS needs a sender ID Termii has approved; WhatsApp needs a WhatsApp device and an approved
+  // authentication template (both IDs are on the dashboard). Either route can be on alone.
+  termii: {
+    apiKey: process.env.TERMII_API_KEY || "",
+    baseUrl: (process.env.TERMII_BASE_URL || "https://v4.api.termii.com").replace(/\/+$/, ""),
+    senderId: process.env.TERMII_SENDER_ID || "",
+    whatsappDeviceId: process.env.TERMII_WHATSAPP_DEVICE_ID || "",
+    whatsappTemplateId: process.env.TERMII_WHATSAPP_TEMPLATE_ID || "",
+  },
   // Listing photos on Cloudinary. Without these, photo uploads are switched off.
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
@@ -42,4 +52,14 @@ export const env = {
 // The email settings this server is missing, named in the log so the fix is obvious.
 export const emailMissing = [!env.resendApiKey && "RESEND_API_KEY", !env.emailFrom && "EMAIL_FROM"].filter((name): name is string => Boolean(name));
 export const emailConnected = emailMissing.length === 0;
+// The settings each phone route is missing, named in the log so the fix is obvious.
+const missing = (settings: Record<string, string>) => Object.entries(settings).filter(([, value]) => !value).map(([name]) => name);
+export const smsMissing = missing({ TERMII_API_KEY: env.termii.apiKey, TERMII_SENDER_ID: env.termii.senderId });
+export const whatsappMissing = missing({
+  TERMII_API_KEY: env.termii.apiKey,
+  TERMII_WHATSAPP_DEVICE_ID: env.termii.whatsappDeviceId,
+  TERMII_WHATSAPP_TEMPLATE_ID: env.termii.whatsappTemplateId,
+});
+export const smsConnected = smsMissing.length === 0;
+export const whatsappConnected = whatsappMissing.length === 0;
 export const photosConnected = Boolean(env.cloudinary.cloudName && env.cloudinary.apiKey && env.cloudinary.apiSecret);

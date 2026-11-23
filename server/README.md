@@ -81,6 +81,7 @@ On the web side, `useAction` in `web/src/app/useApi.ts` shows any toast that arr
 | `shared/toast.ts` | `toast.success("…")`: pop a message up in the web app (see below) |
 | `shared/email.ts` | `sendEmail({...})`: send one branded email through Resend and wait for it. For codes and links the person is waiting on. |
 | `shared/emailSender.ts` | Sends queued notification emails in the background. `notify()` queues them; you don't call this directly. |
+| `shared/termii.ts` | `sendPhoneCode({ via, phone, code, minutes })`: send a sign-up code by WhatsApp or SMS through Termii |
 | `shared/cloudinary.ts` | Listing photos: sign an upload, check Cloudinary's reply, delete, build image URLs |
 | `shared/rateLimit.ts` | `limit({ minutes, max, by })`: cap how often a visitor can call a route. Put one on any route that sends a message, checks a secret or works without signing in. |
 | `shared/format.ts` | `listingRef`, `personName` |

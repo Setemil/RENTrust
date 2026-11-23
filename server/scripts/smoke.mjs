@@ -3,6 +3,12 @@
 // a fresh throwaway database. When you add a feature, add its checks at the bottom.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+// A fake Termii (smoke.sh points TERMII_BASE_URL here). It keeps every message it is asked to send;
+// set termiiFails to make it refuse the next one the way Termii does.
+const termii=[]; let termiiFails=false;
+const fakeTermii=createServer((req,res)=>{let s='';req.on('data',d=>s+=d).on('end',()=>{const body=JSON.parse(s||'{}');termii.push({path:req.url,body});res.setHeader('content-type','application/json');if(termiiFails){termiiFails=false;res.statusCode=400;return res.end(JSON.stringify({message:'Insufficient balance'}));}res.end(JSON.stringify({code:'ok',message_id_str:'smoke-'+termii.length,balance:100}));});}).listen(5098);
+const termiiCode=()=>{const m=termii.at(-1)?.body;return m?.data?.otp??m?.sms?.match(/\d{6}/)?.[0];};
 const B = process.env.SMOKE_URL ?? 'http://localhost:5097/api/v1';
 let fails=0;
 async function call(path,{method='GET',body,token}={}){const r=await fetch(B+path,{method,headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body&&JSON.stringify(body)});return {status:r.status,data:await r.json().catch(()=>null)};}
@@ -21,9 +27,12 @@ const nu=r.data.token;
 r=await call('/auth/register',{method:'POST',body:{email,phone:'08011111111',password:'password123'}}); ok('duplicate register 409',r.status===409,r);
 r=await call('/auth/register',{method:'POST',body:{email:'a@b.co',phone:'08022222222',password:'short'}}); ok('short password 400',r.status===400,r);
 r=await call('/auth/me',{token:nu}); ok('me',r.status===200&&r.data.user.roles[0]==='SEEKER'&&!r.data.user.passwordHash,r);
-for(const channel of ['EMAIL','PHONE']){ r=await call('/account/otp/send',{method:'POST',token:nu,body:{channel}}); const code=r.data.testCode; let w=await call('/account/otp/verify',{method:'POST',token:nu,body:{channel,code:'000000'===code?'111111':'000000'}}); ok('wrong otp '+channel,w.status===400,w); r=await call('/account/otp/verify',{method:'POST',token:nu,body:{channel,code}}); ok('otp '+channel,r.status===200,r); }
+for(const channel of ['EMAIL','PHONE']){ r=await call('/account/otp/send',{method:'POST',token:nu,body:{channel}}); const code=channel==='PHONE'?termiiCode():r.data.testCode; let w=await call('/account/otp/verify',{method:'POST',token:nu,body:{channel,code:'000000'===code?'111111':'000000'}}); ok('wrong otp '+channel,w.status===400,w); r=await call('/account/otp/verify',{method:'POST',token:nu,body:{channel,code}}); ok('otp '+channel,r.status===200,r); }
 r=await call('/account/verification',{method:'POST',token:nu,body:{idType:'NIN',idNumber:'12345678901',dateOfBirth:'1990-05-01'}}); ok('verification before consents 400',r.status===400,r);
 r=await call('/account/consents',{method:'POST',token:nu,body:{kinds:['TERMS_OF_SERVICE','PRIVACY_POLICY']}}); ok('consents',r.status===201,r);
+r=await call('/account/status',{token:nu}); ok('terms accepted at version 2.1',r.data.termsAccepted&&r.data.consentVersion==='2.1'&&r.data.termsAcceptedVersion==='2.1',r.data);
+r=await call('/admin/audit?entityType=User',{token:admin}); ok('accepting terms is audited',r.data.entries.some(e=>e.action==='user.consents_accepted'&&e.after?.docVersion==='2.1'),r.data.entries?.slice(0,3));
+r=await call('/account/status',{token:renter}); ok('seeded accounts accepted the current version',r.data.termsAccepted===true,r.data);
 r=await call('/account/verification',{method:'POST',token:nu,body:{idType:'NIN',idNumber:'12345678901',dateOfBirth:'2015-05-01'}}); ok('under 18 rejected',r.status===400,r);
 r=await call('/account/verification',{method:'POST',token:nu,body:{idType:'NIN',idNumber:'12345678901',dateOfBirth:'1990-05-01'}}); ok('verification submitted',r.status===201,r);
 r=await call('/account/status',{token:nu}); ok('status pending + masked id',r.data.kycStatus==='PENDING'&&r.data.verification.data.idNumber.endsWith('8901')&&r.data.verification.data.idNumber.startsWith('•')&&r.data.termsAccepted,r);
@@ -130,6 +139,21 @@ r=await call('/auth/login',{method:'POST',body:{email:'limit@example.test',passw
 r=await call('/auth/login',{method:'POST',body:{email:'admin@rentrust.test',password:'rentrust-test'}}); ok('other emails can still sign in',r.status===200,r);
 r=await call('/auth/login',{method:'POST',body:{email:'x@example.test',password:'x'.repeat(200_000)}}); ok('oversized body 413',r.status===413&&r.data.error.code==='BODY_TOO_LARGE',r);
 const h=await fetch(B+'/health'); ok('security headers',h.headers.get('x-content-type-options')==='nosniff'&&!h.headers.get('x-powered-by'),Object.fromEntries(h.headers));
+// phone codes through Termii: WhatsApp by default, SMS on request, Termii's refusals shown
+r=await call('/auth/register',{method:'POST',body:{email:'phone'+Date.now()+'@example.test',phone:'0803 123 4567',password:'password123',role:'SEEKER',profile:{firstName:'Pat',lastName:'Phone'}}}); const pu=r.data.token;
+r=await call('/account/status',{token:pu}); ok('status says which phone routes work',r.data.phoneRoutes?.whatsapp===true&&r.data.phoneRoutes?.sms===true,r.data);
+r=await call('/account/otp/send',{method:'POST',token:pu,body:{channel:'PHONE'}}); let sent=termii.at(-1);
+ok('phone code goes by WhatsApp by default',r.status===200&&r.data.via==='WHATSAPP'&&!r.data.testCode&&sent.path==='/api/send/template',r.data);
+ok('WhatsApp template request',sent.body.phone_number==='2348031234567'&&sent.body.device_id==='smoke-device'&&sent.body.template_id==='smoke-template'&&/^\d{6}$/.test(sent.body.data?.otp)&&sent.body.api_key==='smoke-termii',sent.body);
+r=await call('/account/otp/send',{method:'POST',token:pu,body:{channel:'PHONE',via:'PIGEON'}}); ok('unknown phone route 400',r.status===400,r);
+r=await call('/account/otp/send',{method:'POST',token:pu,body:{channel:'PHONE',via:'SMS'}}); sent=termii.at(-1);
+ok('SMS on request, on the DND route',r.status===200&&r.data.via==='SMS'&&sent.path==='/api/sms/send'&&sent.body.channel==='dnd'&&sent.body.from==='RENTrust'&&sent.body.to==='2348031234567'&&/\d{6}/.test(sent.body.sms)&&!/'/.test(sent.body.sms),sent.body);
+r=await call('/account/otp/verify',{method:'POST',token:pu,body:{channel:'PHONE',code:termiiCode()}}); ok('SMS code confirms the phone',r.status===200&&r.data.phoneVerified===true,r);
+const pu2=(await call('/auth/register',{method:'POST',body:{email:'phone2'+Date.now()+'@example.test',phone:'+234 805 000 0001',password:'password123',role:'SEEKER',profile:{firstName:'Pat',lastName:'Two'}}})).data.token;
+termiiFails=true; r=await call('/account/otp/send',{method:'POST',token:pu2,body:{channel:'PHONE'}});
+ok('Termii refusal shows a retry message',r.status===502&&r.data.error.code==='PHONE_NOT_SENT'&&/SMS instead/.test(r.data.error.message),r);
+r=await call('/account/otp/send',{method:'POST',token:pu2,body:{channel:'PHONE',via:'SMS'}}); ok('+234 numbers are accepted',r.status===200&&termii.at(-1).body.to==='2348050000001',termii.at(-1).body);
+fakeTermii.close();
 // the server log (smoke.sh saves it to SERVER_LOG)
 if(process.env.SERVER_LOG){
   const logText=readFileSync(process.env.SERVER_LOG,'utf8');
@@ -138,6 +162,7 @@ if(process.env.SERVER_LOG){
   ok('log: refused requests are warnings',/WARN  POST \/api\/v1\/auth\/login 401/.test(logText));
   ok('log: health checks are skipped',!logText.includes('/api/v1/health'));
   ok('log: character reports are traced',logText.includes('character report ready'));
-  ok('log: no unexpected errors',!/ERROR/.test(logText),logText.split('\n').filter(l=>l.includes('ERROR')).slice(0,5));
+  ok('log: Termii sends and refusals are logged',/INFO  phone code sent.*via=WHATSAPP.*to=234803\*+67/.test(logText)&&/ERROR phone code not sent.*Insufficient balance/.test(logText));
+  ok('log: no unexpected errors',!/ERROR (?!phone code not sent|POST \/api\/v1\/account\/otp\/send 502)/.test(logText),logText.split('\n').filter(l=>l.includes('ERROR')).slice(0,5));
 }
 console.log(fails?`\n${fails} FAILED`:'\nALL PASSED'); process.exit(fails?1:0);

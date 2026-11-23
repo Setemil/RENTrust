@@ -101,7 +101,7 @@ New to the server? Read [`server/README.md`](server/README.md). It explains how 
 What is simulated until providers are chosen (the UI labels each one "Test mode"):
 
 - **Email:** real once `RESEND_API_KEY` and `EMAIL_FROM` are set. Email codes, password-reset links and notifications then go out through Resend. Without them, codes and links are shown on the page in test mode instead.
-- **SMS:** no gateway yet. Phone codes are shown on the page in test mode (on locally; on a host, set `TEST_MODE=true`). SMS notifications are stored as `SIMULATED`.
+- **Phone codes:** real through Termii, by WhatsApp (once `TERMII_WHATSAPP_DEVICE_ID` and `TERMII_WHATSAPP_TEMPLATE_ID` are set) or SMS (once `TERMII_SENDER_ID` is set), plus `TERMII_API_KEY`. People pick WhatsApp or SMS and can switch if a code doesn't arrive. A route that isn't connected shows the code on the page in test mode. SMS notifications are still stored as `SIMULATED`.
 - **Listing photos:** real once the three `CLOUDINARY_*` keys are set. Landlords add up to 12 photos while a listing is a draft; renters see them on the listing and as the cover in search.
 - **KYC / KYB and property documents:** go to the admin review queue. Only a masked ID number and a document reference are stored; there is no file upload yet.
 - **Character report:** `features/interests/reportProvider.ts` returns a report built only from RENTrust's own account data, after `REPORT_DELAY_MS`.
@@ -162,6 +162,9 @@ A full loop: sign in as the renter and show interest in a Bola Adeyemi listing. 
 | `REPORT_DELAY_MS` | Delay before the simulated character report is ready | `4000` |
 | `TEST_MODE` | Show codes and links on screen when they can't be sent. On locally; set `true` on a host for a beta. | on locally |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Real email through Resend | empty (simulated) |
+| `TERMII_API_KEY`, `TERMII_BASE_URL` | Phone codes through Termii | empty (simulated); base URL `https://v4.api.termii.com` |
+| `TERMII_SENDER_ID` | Phone codes by SMS (an approved sender ID) | empty (SMS off) |
+| `TERMII_WHATSAPP_DEVICE_ID`, `TERMII_WHATSAPP_TEMPLATE_ID` | Phone codes by WhatsApp (an approved authentication template) | empty (WhatsApp off) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Listing photos | empty (uploads off) |
 | `TRUST_PROXY` | How many proxies sit in front of the API. Set it to match the host (usually `1`) so rate limits and audit rows see the visitor's real IP. | `0` |
 

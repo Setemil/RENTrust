@@ -13,6 +13,9 @@ export PORT=5097 REPORT_DELAY_MS=300 SEED_PASSWORD=
 # its own fake uploads with the same secret to exercise the photo checks.
 export RESEND_API_KEY= EMAIL_FROM= TEST_MODE=true
 export CLOUDINARY_CLOUD_NAME=smoke CLOUDINARY_API_KEY=smoke-key CLOUDINARY_API_SECRET=smoke-secret
+# Phone codes go to a fake Termii that smoke.mjs runs on port 5098, never to the real one.
+export TERMII_API_KEY=smoke-termii TERMII_BASE_URL=http://localhost:5098 TERMII_SENDER_ID=RENTrust
+export TERMII_WHATSAPP_DEVICE_ID=smoke-device TERMII_WHATSAPP_TEMPLATE_ID=smoke-template
 
 psql "$BASE" -qc "DROP DATABASE IF EXISTS $SMOKE_DB" -c "CREATE DATABASE $SMOKE_DB" 2>/dev/null
 npx prisma migrate deploy >/dev/null

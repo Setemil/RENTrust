@@ -231,3 +231,21 @@
     line-height: 1.35;
   }
 }
+
+.guestFoot {
+  display: flex;
+  gap: var(--space-3);
+  max-width: calc(var(--page-max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: var(--space-3) var(--gutter) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.guestFoot a {
+  color: var(--navy-soft);
+  text-underline-offset: 0.2em;
+}
+
+.guestFoot a:hover {
+  color: var(--navy);
+}

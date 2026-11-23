@@ -1,0 +1,363 @@
+/* The legal documents, drawn as one survey sheet: a schedule of facts and contents on the
+   left, the clauses on the right at a reading measure. */
+
+.docNav {
+  display: flex;
+  gap: var(--space-3);
+  margin-left: auto;
+  align-self: stretch;
+}
+
+.docNav a {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--navy-soft);
+  text-decoration: none;
+  border-bottom: var(--pen-heavy) solid transparent;
+  padding-top: var(--pen-heavy);
+}
+
+.docNav a:hover {
+  color: var(--navy);
+}
+
+.docNav a[aria-current="page"] {
+  color: var(--navy);
+  font-weight: 700;
+  border-bottom-color: var(--navy);
+}
+
+.back {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--navy);
+  text-underline-offset: 0.2em;
+}
+
+.page {
+  max-width: calc(var(--page-max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: var(--space-4) var(--gutter) var(--space-5);
+}
+
+/* The double drawing frame: a 2px pen border, a 6px gap, then a 1px rule. */
+.sheet {
+  position: relative;
+  border: var(--pen-heavy) solid var(--navy);
+  padding: clamp(1.5rem, 1rem + 2.5vw, 4rem);
+}
+
+.sheet::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+
+.head {
+  display: grid;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--pen-heavy) solid var(--navy);
+}
+
+.head h1 {
+  font-size: var(--text-2xl);
+}
+
+.lead {
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--navy-soft);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(14rem, 19rem) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+  padding-top: var(--space-4);
+}
+
+.side {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-3));
+  display: grid;
+  gap: var(--space-3);
+  max-height: calc(100svh - var(--header-h) - var(--space-4));
+  overflow-y: auto;
+}
+
+.facts {
+  border: var(--pen-heavy) solid var(--navy);
+}
+
+.facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.facts div:last-child {
+  border-bottom: 0;
+}
+
+.facts dt {
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+}
+
+.facts dd {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-align: right;
+}
+
+.pdf {
+  justify-self: start;
+}
+
+.tocTitle,
+.tocMobile summary {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding-bottom: var(--space-1);
+  border-bottom: var(--pen-heavy) solid var(--navy);
+}
+
+.tocMobile {
+  display: none;
+}
+
+.contents li {
+  border-bottom: 1px solid var(--rule);
+}
+
+.contents a {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  padding: 0.45rem 0;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--navy-soft);
+  text-decoration: none;
+}
+
+.contents a:hover {
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 44rem;
+  font-size: var(--text-base);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.notice {
+  padding: var(--space-2) var(--space-3);
+  border: var(--pen-heavy) solid var(--navy);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+}
+
+.clause {
+  display: grid;
+  gap: var(--space-2);
+  scroll-margin-top: calc(var(--header-h) + var(--space-3));
+}
+
+.clause h2 {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  font-size: var(--text-lg);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--navy);
+}
+
+/* Square markers: circles are reserved for survey beacons. */
+.items {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.items > li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.items > li::before {
+  content: "";
+  position: absolute;
+  left: 0.25rem;
+  top: 0.65em;
+  width: 0.4rem;
+  height: 0.4rem;
+  background: var(--navy);
+}
+
+.steps {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: var(--space-1);
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+
+.steps li::marker {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.closing {
+  border: var(--pen-heavy) solid var(--navy);
+}
+
+.closing h2 {
+  padding: 0.7rem 1rem;
+  font-size: var(--text-base);
+  line-height: 1.35;
+  letter-spacing: 0;
+  border-bottom: 1px solid var(--navy);
+}
+
+.closingBody {
+  display: grid;
+  gap: var(--space-1);
+  padding: 1rem;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+}
+
+.foot a {
+  font-weight: 700;
+  color: var(--navy);
+  text-underline-offset: 0.2em;
+}
+
+@media (max-width: 860px) {
+  .docNav {
+    display: none;
+  }
+
+  .back {
+    margin-left: auto;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-top: var(--space-3);
+  }
+
+  .side {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .tocDesktop {
+    display: none;
+  }
+
+  .tocMobile {
+    display: block;
+  }
+
+  .tocMobile summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .tocMobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* A drawn caret instead of the browser's triangle; it turns when the list opens. */
+  .tocMobile summary::after {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-right: 0.3rem;
+    border-right: var(--pen) solid var(--navy);
+    border-bottom: var(--pen) solid var(--navy);
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform 0.2s var(--ease-out);
+  }
+
+  .tocMobile[open] summary::after {
+    transform: translateY(25%) rotate(225deg);
+  }
+
+  .tocMobile[open] summary {
+    margin-bottom: var(--space-1);
+  }
+}
+
+@media (max-width: 560px) {
+  .sheet {
+    padding: 1.25rem 1.1rem 1.5rem;
+  }
+
+  .clause h2 {
+    grid-template-columns: 1.85rem minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tocMobile summary::after {
+    transition: none;
+  }
+}
+
+@media print {
+  .side,
+  .docNav,
+  .back {
+    display: none;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheet {
+    border: 0;
+    padding: 0;
+  }
+
+  .sheet::before {
+    display: none;
+  }
+}

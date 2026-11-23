@@ -109,7 +109,7 @@ export function AppLayout() {
         </nav>
       </header>
       <p className={styles.testStrip}>
-        <strong>Test build.</strong> Identity checks, character reports and text messages are simulated. Nothing here is a real listing.
+        <strong>Test build.</strong> Identity checks and character reports are simulated. Nothing here is a real listing.
       </p>
       <main id="main">
         <Outlet />
@@ -145,6 +145,10 @@ export function GuestLayout() {
       <main>
         <Outlet />
       </main>
+      <footer className={styles.guestFoot}>
+        <Link to="/terms">Terms of Use</Link>
+        <Link to="/privacy">Privacy Policy</Link>
+      </footer>
     </div>
   );
 }

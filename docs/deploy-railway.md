@@ -31,6 +31,9 @@ There is no `railway.json` in the repo. Railway has deprecated those files and n
    | `CLIENT_URL` | Fill in after step 3, with the web service's address |
    | `RESEND_API_KEY` | A Resend key with **Sending access** only |
    | `EMAIL_FROM` | For example `RENTrust <no-reply@mail.rentrust.ng>`. The domain must be verified in Resend, or every email is refused. |
+   | `TERMII_API_KEY`, `TERMII_BASE_URL` | From Termii → Settings → API token. The base URL is shown on the Termii dashboard (for example `https://v4.api.termii.com`). |
+   | `TERMII_SENDER_ID` | For SMS codes: a sender ID Termii has approved (Termii → Sender ID). Leave empty until it shows "active". |
+   | `TERMII_WHATSAPP_DEVICE_ID`, `TERMII_WHATSAPP_TEMPLATE_ID` | For WhatsApp codes: the device ID (Termii → WhatsApp → Manage device) and the ID of an approved **authentication** template whose only variable is the code |
    | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | From Cloudinary → Settings → API Keys |
    | `TEST_MODE` | `true` while email and SMS aren't connected. Railway sets `NODE_ENV=production` for you, which otherwise hides the on-screen codes and reset links, and nobody could confirm their email. Remove it once email and SMS work, and before real people sign up. |
 4. **Settings → Networking → Generate Domain**, with port **8080**. Note the address, such as `https://server-production-1234.up.railway.app`.
@@ -79,9 +82,10 @@ Open the web address, sign in as `renter@rentrust.test` with your `SEED_PASSWORD
 
 - [ ] **Resend domain verified.** In Resend → Domains, add `mail.rentrust.ng` (or whichever subdomain you send from), add the DNS records it shows, and wait for "Verified". Until then Resend only delivers to your own Resend account's address.
 - [ ] **`RESEND_API_KEY` and `EMAIL_FROM` set** on the server. Sign up with a fresh address and check the code arrives by email, not on screen.
+- [ ] **Termii set up.** At least one route connected: an approved sender ID for SMS, or a WhatsApp device and approved authentication template. Ask Termii support to switch on the DND route so SMS reaches numbers on Do Not Disturb. Top up the balance. Confirm a phone number on staging and check the code arrives.
 - [ ] **Cloudinary keys set.** As a landlord, add a photo to a draft listing.
 - [ ] **Keys never pasted anywhere public.** If a key was ever shared in a chat, a ticket or a commit, regenerate it and update the variable.
-- [ ] **`TEST_MODE`:** with email connected, it now only affects phone codes, which are still shown on screen because there is no SMS provider yet. That means anyone can "confirm" any phone number. Fine for a closed beta; connect SMS and remove `TEST_MODE` before an open launch.
+- [ ] **`TEST_MODE`:** it only matters for a route that isn't connected, whose codes it shows on screen, so anyone could "confirm" any number that way. Once email and at least one phone route are connected, remove `TEST_MODE`.
 - [ ] **Backups:** in the Postgres service, turn on backups (Railway's **Backups** tab) so a bad migration or mistake can be undone.
 - [ ] **An admin account** whose password only you know, to approve identity checks and listings. The seeded `admin@rentrust.test` uses `SEED_PASSWORD`; keep that secret.
 
@@ -96,6 +100,7 @@ Open the web address, sign in as `renter@rentrust.test` with your `SEED_PASSWORD
 | An email never arrives | Open the server's logs and search `email`. `Email is OFF` at startup (and `Email code NOT sent` when someone asks for a code) names the missing variable. `email not sent` has Resend's reason. `email sent` means Resend took it: look up its `resendId` in Resend's Emails page. |
 | Sign-up says "We couldn't send the email" | Resend refused it. The log line `email not sent` has Resend's reason. Usually `EMAIL_FROM` isn't on a verified domain, or the domain isn't verified yet so Resend only delivers to your own address. |
 | You want only the problems | The server logs one JSON line per event. In Railway's log view, filter with `@level:error` or `@level:warn`. |
+| A phone code never arrives | Search the server's logs for `phone code`. `WhatsApp codes are OFF` or `SMS codes are OFF` at startup names the missing variable. `phone code not sent` has Termii's reason, such as "Invalid Sender Id", "Insufficient balance" or "You are not set up on this route" (ask Termii to enable the DND route). `phone code sent` means Termii took it; look up its `termiiId` in Termii's message history. |
 | Photos say uploads "aren't switched on" | One of the three `CLOUDINARY_*` variables is missing on the server |
 | "Application failed to respond" while the logs look fine | The domain's port isn't the one the app listens on. Set `PORT=8080` and the domain's port to 8080. |
 | Everyone gets "Too many attempts" at once | `TRUST_PROXY` isn't `1` |

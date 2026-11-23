@@ -1,11 +1,12 @@
 import { prisma } from "../shared/db";
 import { RoleName, type Prisma } from "../generated/prisma/client";
 import { hashPassword } from "../features/auth/users";
+import { CONSENT_DOC_VERSION } from "../features/account/consent";
 
 // Test data. Every account uses the same password: SEED_PASSWORD if set (always set it for a
 // hosted environment, since the default is published in the README), otherwise "rentrust-test".
 const PASSWORD = process.env.SEED_PASSWORD || "rentrust-test";
-const CONSENT_VERSION = "draft-2026-10";
+const CONSENT_VERSION = CONSENT_DOC_VERSION;
 
 type SeedUser = {
   email: string;

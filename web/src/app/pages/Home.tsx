@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router";
 import button from "../../components/Button.module.css";
 import TitleBlock from "../../components/TitleBlock";
+import { legalDocuments } from "../../legal/documents";
 import { useAuth } from "../auth";
 import { CheckField, Field, SelectField, clearErrorOnInput, formStyles } from "../Form";
 import { shortDate } from "../format";
@@ -13,14 +14,28 @@ import styles from "./Home.module.css";
 
 type CheckKey = "email" | "phone" | "terms" | "identity";
 
-function OtpPanel({ channel, onDone }: { channel: "EMAIL" | "PHONE"; onDone: () => void }) {
+type Via = "EMAIL" | "WHATSAPP" | "SMS";
+type Sent = { sentTo: string; via: Via; testCode?: string };
+const VIA_NAME: Record<Via, string> = { EMAIL: "email", WHATSAPP: "WhatsApp", SMS: "SMS" };
+
+// Phone codes can go by WhatsApp or SMS. The page offers only the routes the server says work;
+// with neither connected (test mode) there is one button and the code shows on the page.
+function phoneOptions(routes: AccountStatus["phoneRoutes"]): ("WHATSAPP" | "SMS")[] {
+  const options: ("WHATSAPP" | "SMS")[] = [];
+  if (routes.whatsapp) options.push("WHATSAPP");
+  if (routes.sms) options.push("SMS");
+  return options;
+}
+
+function OtpPanel({ channel, routes, onDone }: { channel: "EMAIL" | "PHONE"; routes: AccountStatus["phoneRoutes"]; onDone: () => void }) {
   const send = useAction();
   const verify = useAction();
-  const [sent, setSent] = useState<{ sentTo: string; testCode?: string } | null>(null);
+  const [sent, setSent] = useState<Sent | null>(null);
   const [codeError, setCodeError] = useState("");
+  const options = channel === "PHONE" ? phoneOptions(routes) : [];
 
-  async function handleSend() {
-    const result = await send.run<{ sentTo: string; testCode?: string }>("/account/otp/send", "POST", { channel });
+  async function handleSend(via?: "WHATSAPP" | "SMS") {
+    const result = await send.run<Sent>("/account/otp/send", "POST", { channel, ...(via ? { via } : {}) });
     if (result) setSent(result);
   }
 
@@ -33,29 +48,47 @@ function OtpPanel({ channel, onDone }: { channel: "EMAIL" | "PHONE"; onDone: () 
   }
 
   if (!sent) {
+    const where = channel === "EMAIL" ? "to your email address" : options.length ? `to your phone by ${options.map((o) => VIA_NAME[o]).join(" or ")}` : "to your phone";
     return (
       <div className={styles.panel}>
-        <p className={uiStyles.small}>We'll send a 6-digit code {channel === "EMAIL" ? "to your email address" : "by SMS to your phone"}.</p>
+        <p className={uiStyles.small}>We'll send a 6-digit code {where}.</p>
         {send.error && <p className={formStyles.alert} role="alert">{send.error}</p>}
         <div className={formStyles.actionsRow}>
-          <button type="button" className={`${button.button} ${button.small}`} onClick={handleSend} disabled={send.pending}>
-            {send.pending ? "Sending…" : "Send code"}
-          </button>
+          {options.length === 0 ? (
+            <button type="button" className={`${button.button} ${button.small}`} onClick={() => handleSend()} disabled={send.pending}>
+              {send.pending ? "Sending…" : "Send code"}
+            </button>
+          ) : (
+            options.map((via, i) => (
+              <button
+                key={via}
+                type="button"
+                className={`${button.button} ${button.small} ${i > 0 ? button.outline : ""}`}
+                onClick={() => handleSend(via)}
+                disabled={send.pending}
+              >
+                Send by {VIA_NAME[via]}
+              </button>
+            ))
+          )}
         </div>
       </div>
     );
   }
 
+  // After a phone code is sent, offer the other route in case this one doesn't arrive.
+  const other = options.find((o) => o !== sent.via);
   return (
     <form className={`${styles.panel} ${formStyles.form}`} onSubmit={handleVerify} noValidate>
       <p className={uiStyles.small}>
-        Code sent to <strong>{sent.sentTo}</strong>. It expires in 10 minutes.
+        Code sent {channel === "PHONE" ? `by ${VIA_NAME[sent.via]} ` : ""}to <strong>{sent.sentTo}</strong>. It expires in 10 minutes.
       </p>
       {sent.testCode && (
         <TestNote>
-          {channel === "EMAIL" ? "Email" : "SMS"} isn't connected yet, so here is your code: <strong className={styles.code}>{sent.testCode}</strong>
+          {channel === "EMAIL" ? "Email" : "Text messages"} aren't connected yet, so here is your code: <strong className={styles.code}>{sent.testCode}</strong>
         </TestNote>
       )}
+      {send.error && <p className={formStyles.alert} role="alert">{send.error}</p>}
       {verify.error && <p className={formStyles.alert} role="alert">{verify.error}</p>}
       <div className={styles.inline}>
         <Field label="Code" name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} error={codeError} autoFocus />
@@ -63,14 +96,22 @@ function OtpPanel({ channel, onDone }: { channel: "EMAIL" | "PHONE"; onDone: () 
           {verify.pending ? "Checking…" : "Confirm"}
         </button>
       </div>
-      <button type="button" className={uiStyles.linkButton} onClick={handleSend} disabled={send.pending}>
-        Send a new code
-      </button>
+      <div className={styles.resend}>
+        <button type="button" className={uiStyles.linkButton} onClick={() => handleSend(channel === "PHONE" && options.length ? (sent.via as "WHATSAPP" | "SMS") : undefined)} disabled={send.pending}>
+          Send a new code
+        </button>
+        {other && (
+          <button type="button" className={uiStyles.linkButton} onClick={() => handleSend(other)} disabled={send.pending}>
+            Didn't get it? Send by {VIA_NAME[other]} instead
+          </button>
+        )}
+      </div>
     </form>
   );
 }
 
-function TermsPanel({ version, onDone }: { version: string; onDone: () => void }) {
+// The documents open in a new tab, so the panel and its checkbox stay where they are.
+function TermsPanel({ version, previous, onDone }: { version: string; previous: string | null; onDone: () => void }) {
   const accept = useAction();
   const [checked, setChecked] = useState(false);
   const [error, setError] = useState("");
@@ -84,13 +125,31 @@ function TermsPanel({ version, onDone }: { version: string; onDone: () => void }
   return (
     <form className={`${styles.panel} ${formStyles.form}`} onSubmit={handleSubmit} noValidate>
       <p className={uiStyles.small}>
-        The terms explain what RENTrust checks, who sees your details and how long they are kept. Your acceptance is recorded with the
-        document version and time.
+        {previous
+          ? `RENTrust has updated these documents since you accepted version ${previous}. Read version ${version}, then accept it to carry on.`
+          : "Read both documents before you accept. RENTrust records the version you accept and when."}
       </p>
-      <TestNote>The legal documents are still drafts (version {version}).</TestNote>
+      <ul className={styles.docs}>
+        {legalDocuments.map((doc) => (
+          <li key={doc.slug}>
+            <div>
+              <a href={doc.path} target="_blank" rel="noopener">
+                {doc.title}
+                <span className="visually-hidden"> (opens in a new tab)</span>
+              </a>
+              <p>
+                Version {doc.version}, effective {doc.effective}
+              </p>
+            </div>
+            <a href={doc.pdf} download className={styles.pdfLink}>
+              PDF<span className="visually-hidden">: download the {doc.title}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
       {accept.error && <p className={formStyles.alert} role="alert">{accept.error}</p>}
       <CheckField checked={checked} onChange={(e) => { setChecked(e.target.checked); setError(""); }} error={error}>
-        I accept the RENTrust Terms of Service and Privacy Notice.
+        I have read and agree to the RENTrust Terms of Use and Privacy Policy, version {version}.
       </CheckField>
       <button type="submit" className={`${button.button} ${button.small} ${formStyles.submit}`} disabled={accept.pending}>
         {accept.pending ? "Saving…" : "Accept"}
@@ -194,9 +253,19 @@ function rowsFor(s: AccountStatus, user: { email: string; phone: string; userTyp
   return [
     { key: "email", name: "Email address", detail: user.email, state: s.emailVerified ? "verified" : "open", status: s.emailVerified ? "Confirmed" : "Not confirmed", action: s.emailVerified ? undefined : "Confirm" },
     { key: "phone", name: "Phone number", detail: user.phone, state: s.phoneVerified ? "verified" : "open", status: s.phoneVerified ? "Confirmed" : "Not confirmed", action: s.phoneVerified ? undefined : "Confirm" },
-    { key: "terms", name: "Terms and privacy notice", detail: s.termsAccepted ? `Accepted, version ${s.consentVersion}` : "What RENTrust checks and who sees what", state: s.termsAccepted ? "verified" : "open", status: s.termsAccepted ? "Accepted" : "Not accepted", action: s.termsAccepted ? undefined : "Review" },
+    termsRow(s),
     identity,
   ];
+}
+
+// An older acceptance counts as "update to accept", not as never accepted.
+function termsRow(s: AccountStatus): Row {
+  const name = "Terms of Use and Privacy Policy";
+  if (s.termsAccepted) return { key: "terms", name, detail: `Accepted, version ${s.consentVersion}`, state: "verified", status: "Accepted" };
+  if (s.termsAcceptedVersion) {
+    return { key: "terms", name, detail: `Updated to version ${s.consentVersion}. Read it and accept again.`, state: "open", status: "Update to accept", action: "Review" };
+  }
+  return { key: "terms", name, detail: "What you agree to, and how RENTrust uses your data", state: "open", status: "Not accepted", action: "Review" };
 }
 
 function NextSteps({ roles, verified }: { roles: string[]; verified: boolean }) {
@@ -279,9 +348,9 @@ export default function Home() {
                       {row.action && row.blockedBy && <span className={uiStyles.muted}>{row.blockedBy}</span>}
                     </div>
                   </div>
-                  {open === "email" && row.key === "email" && <OtpPanel channel="EMAIL" onDone={done} />}
-                  {open === "phone" && row.key === "phone" && <OtpPanel channel="PHONE" onDone={done} />}
-                  {open === "terms" && row.key === "terms" && <TermsPanel version={data.consentVersion} onDone={done} />}
+                  {open === "email" && row.key === "email" && <OtpPanel channel="EMAIL" routes={data.phoneRoutes} onDone={done} />}
+                  {open === "phone" && row.key === "phone" && <OtpPanel channel="PHONE" routes={data.phoneRoutes} onDone={done} />}
+                  {open === "terms" && row.key === "terms" && <TermsPanel version={data.consentVersion} previous={data.termsAccepted ? null : data.termsAcceptedVersion} onDone={done} />}
                   {open === "identity" && row.key === "identity" && <IdentityPanel isOrg={user.userType === "ORG"} onDone={done} />}
                 </li>
               ))}

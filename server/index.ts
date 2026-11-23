@@ -2,16 +2,18 @@ import { app } from "./app";
 import { resumePendingReports } from "./features/interests/reportProvider";
 import { prisma } from "./shared/db";
 import { startEmailSender } from "./shared/emailSender";
-import { emailConnected, emailMissing, env, photosConnected } from "./shared/env";
+import { emailConnected, emailMissing, env, photosConnected, smsConnected, smsMissing, whatsappConnected, whatsappMissing } from "./shared/env";
 import { log } from "./shared/log";
 
 // Starts the server, and says once at startup which outside services are connected, so a
 // missing setting shows up in the log instead of as a silent "the email never came".
 function reportConnections() {
-  log.info("settings", { testMode: env.testMode, clientUrl: env.clientUrl, email: emailConnected ? `from ${env.emailFrom}` : "off", photos: photosConnected ? "on" : "off" });
+  log.info("settings", { testMode: env.testMode, clientUrl: env.clientUrl, email: emailConnected ? `from ${env.emailFrom}` : "off", whatsapp: whatsappConnected ? "on" : "off", sms: smsConnected ? `from ${env.termii.senderId}` : "off", photos: photosConnected ? "on" : "off" });
   if (!emailConnected) {
     log.warn(`Email is OFF: add ${emailMissing.join(" and ")} to this server's variables, then redeploy`, { missing: emailMissing });
   }
+  if (!whatsappConnected) log.warn(`WhatsApp codes are OFF: add ${whatsappMissing.join(" and ")} to this server's variables, then redeploy`, { missing: whatsappMissing });
+  if (!smsConnected) log.warn(`SMS codes are OFF: add ${smsMissing.join(" and ")} to this server's variables, then redeploy`, { missing: smsMissing });
   if (!photosConnected) log.warn("listing photos are off", { missing: "CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY or CLOUDINARY_API_SECRET" });
 }
 

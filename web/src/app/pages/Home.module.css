@@ -64,6 +64,47 @@
   padding: 0 0.5rem var(--space-3) calc(14px + var(--space-2) + 0.5rem);
 }
 
+/* The two legal documents in the terms panel, as a ruled schedule. */
+.docs {
+  border-top: var(--pen-heavy) solid var(--navy);
+}
+
+.docs li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.docs li > div > a {
+  font-weight: 700;
+  color: var(--navy);
+  text-underline-offset: 0.2em;
+}
+
+.docs p {
+  font-size: var(--text-sm);
+  color: var(--navy-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdfLink {
+  flex: none;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--navy);
+  text-underline-offset: 0.2em;
+}
+
+/* The resend links under a code form: a new code, or the other phone route. */
+.resend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
 .inline {
   display: flex;
   align-items: flex-end;

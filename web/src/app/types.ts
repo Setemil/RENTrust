@@ -85,6 +85,10 @@ export type AccountStatus = {
   emailVerified: boolean;
   phoneVerified: boolean;
   termsAccepted: boolean;
+  // The version last accepted, which may be older than consentVersion after an update.
+  termsAcceptedVersion: string | null;
+  // Which ways a phone code can go right now.
+  phoneRoutes: { whatsapp: boolean; sms: boolean };
   consentVersion: string;
   kycStatus: VerifyState;
   verification: {

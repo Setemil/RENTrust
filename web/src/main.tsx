@@ -13,6 +13,7 @@ import { InterestDetail, InterestList } from "./app/pages/Interests";
 import ListingDetail from "./app/pages/ListingDetail";
 import Listings from "./app/pages/Listings";
 import ForgotPassword from "./app/pages/ForgotPassword";
+import Legal from "./app/pages/Legal";
 import Login from "./app/pages/Login";
 import Notifications from "./app/pages/Notifications";
 import Profile from "./app/pages/Profile";
@@ -22,6 +23,7 @@ import { EditProperty, NewProperty } from "./app/pages/PropertyForm";
 import Signup from "./app/pages/Signup";
 import RequireRole from "./app/RequireRole";
 import { ToastProvider } from "./app/toast";
+import { privacy, terms } from "./legal/documents";
 import "./styles/tokens.css";
 import "./styles/base.css";
 
@@ -35,6 +37,8 @@ createRoot(document.getElementById("root")!).render(
         <ToastProvider>
           <Routes>
             <Route path="/" element={<App />} />
+            <Route path="/terms" element={<Legal doc={terms} key="terms" />} />
+            <Route path="/privacy" element={<Legal doc={privacy} key="privacy" />} />
             <Route element={<GuestLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />

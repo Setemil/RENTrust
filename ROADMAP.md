@@ -68,7 +68,7 @@ Architecture:
 
 ## Phase 2: Real communications, documents and KYC (about 2 weeks)
 
-- [ ] An email and SMS gateway behind `notify()`, sent through the job queue with retries and delivery status. OTP codes stop being returned to the page. **Email done** (Resend: codes, reset links, and notifications sent in the background with retries and status). SMS still to do.
+- [ ] An email and SMS gateway behind `notify()`, sent through the job queue with retries and delivery status. OTP codes stop being returned to the page. **Email done** (Resend: codes, reset links, and notifications sent in the background with retries and status). **Phone codes done** (Termii, by WhatsApp or SMS). SMS notifications still to do.
 - [ ] Branded email templates (logo, navy and green) from the RENTrust domain, with SPF, DKIM and DMARC set up. The branded layout is built (`shared/email.ts`); the domain and its DNS records are still to do.
 - [ ] Private document upload to object storage, using signed expiring links and type and size limits. Covers ID, CAC, C of O or deed, letter of authority and inspection photos.
 - [ ] Uploads wired into the KYC, KYB, ownership and mandate forms and the admin review screens.
